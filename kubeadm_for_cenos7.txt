@@ -32,7 +32,6 @@ rpm -Uvh http://www.elrepo.org/elrepo-release-7.0-2.el7.elrepo.noarch.rpm ;yum -
 grub2-editenv list
 
 
-
 #重启以更换内核
 reboot
 
@@ -111,7 +110,12 @@ kubeadm version -o short
 
 {
     # master 集群启动
-    kubeadm init --kubernetes-version=v1.10.0 --pod-network-cidr=10.244.0.0/16 --apiserver-advertise-address=10.151.30.57
+    kubeadm init --kubernetes-version=v1.14.0 --pod-network-cidr=10.244.0.0/16 --apiserver-advertise-address=192.168.3.108
+
+    # 别忘了启动log的命令
+    mkdir -p $HOME/.kube
+    sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+    sudo chown $(id -u):$(id -g) $HOME/.kube/config
 
     下载kube-flannel.yml
     链接：https://pan.baidu.com/s/1b-zGf60ZTtY09SsEnNe-ZA
@@ -131,3 +135,9 @@ kubeadm version -o short
 
 # node join
 kubeadm join 192.168.3.108:6443 --token ammyln.f8aq71go9x4zok7e --discovery-token-ca-cert-hash sha256:15a21f77deedc0e4492346f64e45536f2bfd3456e9f6da04730db5258a0c9be4
+
+
+# 检查状态(在master执行)
+kubectl get pods --all-namespaces
+kubectl get nodes
+
