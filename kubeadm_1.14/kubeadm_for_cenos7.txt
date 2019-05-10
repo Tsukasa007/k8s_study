@@ -149,6 +149,9 @@ kubectl get cs
 kubectl get pods --all-namespaces
 kubectl get nodes
 
+查看部署在哪台node
+kubectl get pods --all-namespaces -o wide
+
 kubectl get svc -n kube-system -n kube-system
 
 kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/master/aio/deploy/recommended/kubernetes-dashboard-head.yaml

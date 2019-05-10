@@ -190,3 +190,20 @@ spec:
       targetPort: 8443
   selector:
     k8s-app: kubernetes-dashboard
+
+
+
+
+#继续  token
+
+
+
+admin-acount.yaml传到服务器
+kubectl apply -f admin-acount.yaml
+
+#执行查找token
+kubectl -n kube-system describe secret $(kubectl -n kube-system get secret | grep kubernetes-dashboard-token|awk '{print $1}')|grep token:|awk '{print $2}'
+
+ok!
+
+
