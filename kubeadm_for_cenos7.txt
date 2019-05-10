@@ -141,3 +141,17 @@ kubeadm join 192.168.3.108:6443 --token ammyln.f8aq71go9x4zok7e --discovery-toke
 kubectl get pods --all-namespaces
 kubectl get nodes
 
+
+
+
+# 命令补全
+
+yum install -y bash-completion
+ locate bash_completion
+ source /usr/share/bash-completion/bash_completion
+ source <(kubectl completion bash)
+   cat << EOF >> /root/.bash_profile
+ source /usr/share/bash-completion/bash_completion
+ source <(kubectl completion bash)
+ EOF
+ source /root/.bash_profile
