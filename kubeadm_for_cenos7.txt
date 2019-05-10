@@ -91,6 +91,13 @@ systemctl enable docker
 systemctl start docker
 
 
+# 导入kube镜像
+链接：https://pan.baidu.com/s/1FJiEGCUPPQ7dib5tVf7sDQ
+提取码：5u12
+docker load -i xxxx
+
+
+
 
 k8s-v1.14.0-rpms.tgz 下载 并放在 /path/to/downloaded/file
 mkdir -p /path/to/downloaded/file
