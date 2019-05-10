@@ -149,7 +149,9 @@ kubectl get cs
 kubectl get pods --all-namespaces
 kubectl get nodes
 
+kubectl get svc -n kube-system -n kube-system
 
+kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/master/aio/deploy/recommended/kubernetes-dashboard-head.yaml
 
 
 
