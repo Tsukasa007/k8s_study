@@ -1,0 +1,58 @@
+压力工具stress
+
+安装
+apt-get update &&apt-get install -y stress
+
+启动一个worker，默认256M
+stress -vm 1
+
+输出详细
+stress -vm 1 --verbose
+
+创建大内存worker，一直分配，一直释放
+
+stress -vm 1 --vm-bytes 500000M --verbose
+
+*注意不要超过宿主机内存
+
+
+创建stress容器
+https://github.com/hx6007/docker-k8s-devops-master/tree/master/chapter3/labs/ubuntu-stress
+FROM ubuntu
+RUN apt-get update && apt-get install -y stress
+ENTRYPOINT ["/usr/bin/stress"]
+CMD []
+
+docker build -t image-stress .
+
+启动容器
+docker run -it image-stress --vm 1 --verbose
+
+3-12 容器的资源限制
+
+docker run --memory=200M image-stress -vm 1 --verbose
+
+实际200+swap200,共400M
+
+
+Cpu相对权重
+
+docker run --cpu-shares=10 --name test1 image-stress --cpu 1
+
+docker run --cpu-shares=5 --name test2 image-stress --cpu 1
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

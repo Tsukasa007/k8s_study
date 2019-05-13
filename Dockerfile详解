@@ -1,0 +1,804 @@
+详细参数参考
+https://docs.docker.com/engine/reference/builder
+
+
+
+Dockerfile是一个文本文件，内容中包含了一条或多条指令，每条指令构建镜像文件的一层。
+Dockerfile文件一般以“#”注释行开头，包括基础镜像信息、维护者信息、镜像操作指令、启动时执行指令等。
+
+FROM image.tag  定义使用哪个基础镜像启动构建流程  FROM centos
+
+MAINTERINER 声明镜像者 MAINTERINER fg
+
+ENV key value 设置环境变量 ENV host 192.168.1.1
+
+RUN 命令  执行命令  RUN apt-get install MYSQL
+
+ADD src/file dest/file 复制主机文件到容器内，如果有压缩文件则自动解压
+
+COPY src/file dest/file 复制宿主机文件到容器内，如果有压缩文件则不解压
+
+WORKDIR 目录   设置工作目录
+
+EXPOSE 端口1  端口2 设定端口，容器内应用可以使用端口同外部交互
+
+CMD 参数 构建容器时使用，会被docker run 后面的参数覆盖
+
+ENTRYPOINT 参数 同CMD相似，但参数不会被覆盖
+
+VOLUME 将本地文件夹或其他文件夹挂载到容器中
+
+
+
+为了编写出最优的Dockerfile，需要根据下面的checklist进行检查，不符合要求的需要改正。
+
+1）Dockerignore文件。检查是否有.dockerignore文件，以及该文件中是否过滤掉了不用的文件。
+
+2）容器进程数量。一般情况下一个容器只执行一个进程，如果有极其特殊原因需要使用多个进程，则需要考虑多个进程间是否互相影响，可以考虑使用supervisor进行多进程管理。
+
+3）Dockerfile指令。
+
+·使用workdir设定当前工作目录。
+
+·run指令。多个顺序执行的run指令需要合并，以减少镜像的层次及提高Dockerfile的可读性；run指令执行完后需要删除冗余的文件，确保制作出的镜像文件简洁。
+
+·合理调整copy与run的顺序。我们应该把变化最少的部分放在Dockerfile的前面，这样可以充分利用镜像缓存。
+
+·环境变量。Docker容器运行时很有可能需要一些环境变量，在Dockerfile中设置默认的环境变量是一种有效的方案。
+
+4）基础镜像。如果有技术储备，建议自己制作基础镜像；如果自己不能制作基础镜像，建议选用成熟的基础镜像，镜像包尽可能小；使用基础镜像时建议写上镜像版本，防止镜像更新时latest标签会指向不同的镜像，这时构建镜像有可能失败。
+
+
+3.3.2　Dockerfile优化实例下面以Dockerfile内容为基础，按照检查项进行逐步优化。该Dockerfile的内容如下：
+
+FROM RHEL 
+ADD . /mywebapp 
+RUN apt-get update 
+RUN apt-get upgrade -y 
+RUN apt-get install -y tomcat ssh MySQL 
+RUN cd /app && npm install 
+CMD MySQL & sshd & npm start
+
+1）编写.dockerignore文件。.dockerignore的作用和语法类似于.gitignore，用来忽略一些不需要的文件，这样可以有效加快镜像构建时间，同时减少Docker镜像的大小。示例如下：
+
+.git/
+
+2）容器只运行单个应用。
+
+FROM RHEL 
+ADD . /mywebapp 
+RUN apt-get update 
+RUN apt-get upgrade -y 
+RUN apt-get install -y tomcat    #ssh MySQL 
+RUN cd /app && npm install
+CMD MySQL & sshd & npm start
+
+
+3）run指令合并。
+
+FROM RHEL 
+ADD . /mywebapp 
+RUN apt-get update \ 
+&& apt-get upgrade -y \ 
+&& apt-get install -y tomcat \   #ssh MySQL 
+&& cd /app && npm install
+
+
+
+4）基础镜像的标签不要用latest。
+
+FROM RHEL:7.4 
+ADD . /mywebapp 
+RUN apt-get update \ 
+&& apt-get upgrade -y \ 
+&& apt-get install -y tomcat \   #ssh MySQL 
+&& cd /app && npm install
+
+5）设置默认工作目录。
+
+FROM RHEL:7.4 
+WORKDIR /mywebapp 
+ADD . /mywebapp 
+RUN apt-get update \ 
+&& apt-get upgrade -y \ 
+&& apt-get install -y tomcat \   #ssh MySQL 
+&& cd /app && npm install
+
+6）设置环境变量。
+FROM RHEL:7.4 
+WORKDIR /mywebapp 
+ADD . /mywebapp 
+RUN apt-get update \ 
+&& apt-get upgrade -y \ 
+&& apt-get install -y tomcat \   #ssh MySQL 
+ENV  HOST=10.47.43.1 \     
+     PORT=8080
+
+
+
+
+
+
+
+.dockerignore上下文目录添加文件来排除文件和目录。
+
+例如，模式 /foo/bar和foo/bar两者都排除bar 在位于git存储库的foo子目录PATH或根目录中命名的文件或目录URL。两者都不包括任何其他内容。
+如果.dockerignore文件中的行以第#1列开头，则此行被视为注释，并在CLI解释之前被忽略。
+
+这是一个示例.dockerignore文件：
+
+# comment #1列开头，则此行被视为注释，并在CLI解释之前被忽略。
+*/temp*
+*/*/temp*
+temp?
+
+规则	行为
+# comment	忽略。
+*/temp*	排除名称以temp根目录的任何直接子目录开头的文件和目录。例如，/somedir/temporary.txt排除普通文件，目录也是如此/somedir/temp。
+*/*/temp*	排除temp从根目录下两级开始的任何子目录开始的文件和目录。例如，/somedir/subdir/temporary.txt被排除在外。
+temp?	排除根目录中的文件和目录，其名称是单字符扩展名temp。例如，/tempa与/tempb被排除在外。
+
+
+
+
+传统上，它Dockerfile被调用Dockerfile并位于上下文的根中。您可以使用-f标志docker build指向文件系统中任何位置的Dockerfile。
+
+$ docker build -f /path/to/a/Dockerfile .
+
+以!（感叹号）开头的行可用于对排除项进行例外处理。以下是.dockerignore使用此机制的示例文件：
+
+    *.md
+    !README.md
+除 README.md上下文外，所有降价文件除外。
+
+
+
+要在构建后将映像标记为多个存储库，请在-t运行build命令时添加多个参数：
+
+$ docker build -t shykes/myapp:1.0.2 -t shykes/myapp:latest .
+
+
+环境更换
+环境变量（与声明的ENV声明），也可以在特定指令作为变量用来被解释 Dockerfile。还会处理转义，以便将类似变量的语法包含在字面上。
+
+FROM busybox
+ENV foo /bar
+WORKDIR ${foo}   # WORKDIR /bar
+ADD . $foo       # ADD . /bar
+COPY \$foo /quux # COPY $foo /quux
+
+
+以下指令列表支持环境变量Dockerfile：
+
+ADD
+COPY
+ENV
+EXPOSE
+FROM
+LABEL
+STOPSIGNAL
+USER
+VOLUME
+WORKDIR
+以及：
+
+ONBUILD （当与上面支持的指令之一结合使用时）
+
+
+
+
+FROM 
+
+FROM <image> [AS <name>]
+要么
+
+FROM <image>[:<tag>] [AS <name>]
+要么
+
+FROM <image>[@<digest>] [AS <name>]
+
+例子：
+FROM node:9.11.1 as builder
+
+
+
+可以通过添加AS name到FROM指令来将 名称赋予新的构建阶段。该名称可用于后续FROM和 COPY --from=<name|index>指令，以引用此阶段构建的图像。
+例子：
+FROM nginx:stable
+COPY --from=builder /app/.nginx.conf /etc/nginx/conf.d/default.conf
+COPY --from=builder /app/build /usr/share/nginx/html
+
+
+了解ARG和FROM如何互动
+FROM说明支持由ARG 第一个之前发生的任何指令声明的变量FROM。
+
+ARG  CODE_VERSION=latest
+FROM base:${CODE_VERSION}
+CMD  /code/run-app
+
+FROM extras:${CODE_VERSION}
+CMD  /code/run-extras
+在ARG宣布之前，FROM是一个构建阶段之外，因此它不能在之后的任何指令使用FROM。要ARG在第一次FROM使用之前使用声明的默认值，请在ARG构建阶段内使用没有值的指令：
+
+ARG VERSION=latest
+FROM busybox:$VERSION
+ARG VERSION
+RUN echo $VERSION > image_version
+
+例子：
+# node底包
+FROM node:9.11.1 as builder
+#定义环境变量 平台代号
+ARG SITE_CODE
+ARG GATEWAY
+
+然后在build命令中传入参数
+构建：
+docker image build  -t $REGISTRY/$IMAGE:production --build-arg SITE_CODE=$IMAGE --build-arg GATEWAY=$WANGGUAN  .
+
+
+
+RUN有两种形式：
+
+RUN <command>（shell表单，该命令在shell中运行，默认情况下/bin/sh -c在Linux或cmd /S /CWindows 上运行）
+RUN ["executable", "param1", "param2"]（执行形式）
+
+
+RUN /bin/bash -c 'source $HOME/.bashrc; \
+echo $HOME'
+
+它们一起相当于这一行：
+
+RUN /bin/bash -c 'source $HOME/.bashrc; echo $HOME'
+
+注意：要使用除“/ bin / sh”之外的其他shell，请使用传入所需shell 的exec表单。例如， RUN ["/bin/bash", "-c", "echo hello"]
+注意：exec表单被解析为JSON数组，这意味着您必须使用双引号（“）来围绕单词而不是单引号（'）。
+
+
+注意：与shell表单不同，exec表单不会调用命令shell。这意味着不会发生正常的shell处理。例如， RUN [ "echo", "$HOME" ]不会对变量进行替换$HOME。如果你想要shell处理，那么要么
+
+使用shell表单，要么直接执行shell，例如：RUN [ "sh", "-c", "echo $HOME" ]。当使用exec表单并直接执行shell时，就像shell表单的情况一样，它是执行环境变量扩展的shell，而不是
+
+docker。
+
+注意：在JSON表单中，必须转义反斜杠。这在反斜杠是路径分隔符的Windows上尤为重要。由于不是有效的JSON，以下行将被视为shell表单，并以意外方式失败： RUN ["c:\windows
+
+\system32\tasklist.exe"] 此示例的正确语法是： RUN ["c:\\windows\\system32\\tasklist.exe"]
+
+RUN在下一次构建期间，指令的缓存不会自动失效。类似指令的缓存 RUN apt-get dist-upgrade -y将在下一次构建期间重用。例如，RUN可以通过使用--no-cache 标志使指令的高速缓存无效
+
+docker build --no-cache。
+
+Run : 执行命令并创建新的image layer
+Cmd：设置容器启动后默认执行的命令和参数
+Entrypoint：设置容器启东市运行的命令
+Shell 格式
+Run apt-get install -y vim
+Cmd echo “hello docker”
+
+Exec格式
+RUN [ “apt-get”, “install”, ”-y” , “vim” ]
+CMD [ “/bin/echo” , ”echo docker” ]
+ENTRPOINT [ “/bin/echo” , “hello docker” ]
+
+
+Shell 和exec格式
+Dockerfile1
+FROM centos
+ENV name Docker
+ENTRYPOINT echo “hello $name”
+
+Dockerfile2
+FROM centos
+ENV name Docker
+ENTRYPOINT [ “/bin/bash” ,”-c”, “echo hello $name”]
+
+
+
+
+CMD
+该CMD指令有三种形式：
+
+CMD ["executable","param1","param2"]（执行形式，这是首选形式）
+CMD ["param1","param2"]（作为ENTRYPOINT的默认参数）
+CMD command param1 param2（贝壳形式）
+
+
+a中只能有一条CMD指令Dockerfile。如果列出多个，CMD 则只有最后一个CMD生效。
+
+a的主要目的CMD是为执行容器提供默认值。这些默认值可以包含可执行文件，也可以省略可执行文件，在这种情况下，您还必须指定一条ENTRYPOINT 指令。
+
+注意：如果CMD用于为ENTRYPOINT 指令提供默认参数，则应使用JSON数组格式指定CMD和ENTRYPOINT指令。
+
+注意：exec表单被解析为JSON数组，这意味着您必须使用双引号（“）来围绕单词而不是单引号（'）。
+
+
+注意：与shell表单不同，exec表单不会调用命令shell。这意味着不会发生正常的shell处理。例如， CMD [ "echo", "$HOME" ]不会对变量进行替换$HOME。如果你想要shell处理，那么要么
+
+使用shell表单，要么直接执行shell，例如：CMD [ "sh", "-c", "echo $HOME" ]。当使用exec表单并直接执行shell时，就像shell表单的情况一样，它是执行环境变量扩展的shell，而不是
+
+docker。
+
+
+
+在shell或exec格式中使用时，该CMD指令设置在运行映像时要执行的命令。
+
+如果你使用的是shell的形式CMD，那么<command>将执行 /bin/sh -c：
+
+FROM ubuntu
+CMD echo "This is a test." | wc -
+
+
+如果要在 <command> 没有shell 的情况下运行，则必须将该命令表示为JSON数组，并提供可执行文件的完整路径。 此数组形式是首选格式CMD。任何其他参数必须在数组中单独表示为字符串
+
+：
+
+FROM ubuntu
+CMD ["/usr/bin/wc","--help"]
+
+注意：不要混淆RUN使用CMD。RUN实际上运行一个命令并提交结果; CMD在构建时不执行任何操作，但指定图像的预期命令。
+
+
+
+标签
+LABEL <key>=<value> <key>=<value> <key>=<value> ...
+该LABEL指令将元数据添加到图像。A LABEL是键值对。要在LABEL值中包含空格，请使用引号和反斜杠，就像在命令行解析中一样。一些用法示例：
+
+LABEL "com.example.vendor"="ACME Incorporated"
+LABEL com.example.label-with-value="foo"
+LABEL version="1.0"
+LABEL description="This text illustrates \
+that label-values can span multiple lines."
+
+
+图像可以有多个标签。您可以在一行中指定多个标签。在Docker 1.10之前，这减小了最终图像的大小，但现在不再是这种情况了。您仍然可以选择在单个指令中指定多个标签，方法有以下两
+
+种：
+
+LABEL multi.label1="value1" multi.label2="value2" other="value3"
+LABEL multi.label1="value1" \
+      multi.label2="value2" \
+      other="value3"
+
+
+基本或父图像中包含的标签（FROM线中的图像）由图像继承。如果标签已存在但具有不同的值，则最近应用的值将覆盖任何先前设置的值。
+
+要查看图像的标签，请使用该docker inspect命令。
+
+"Labels": {
+    "com.example.vendor": "ACME Incorporated"
+    "com.example.label-with-value": "foo",
+    "version": "1.0",
+    "description": "This text illustrates that label-values can span multiple lines.",
+    "multi.label1": "value1",
+    "multi.label2": "value2",
+    "other": "value3"
+},
+
+
+
+
+EXPOSE <port> [<port>/<protocol>...]
+
+要在TCP和UDP上公开，请包含两行：
+
+EXPOSE 80/tcp
+EXPOSE 80/udp
+
+
+无论EXPOSE设置如何，您都可以使用-p标志在运行时覆盖它们。例如
+docker run -p 80:80/tcp -p 80:80/udp ...
+
+
+
+ENV
+ENV <key> <value>
+ENV <key>=<value> ...
+
+该ENV指令将环境变量<key>设置为该值 <value>。此值将在构建阶段中所有后续指令的环境中，并且也可以在许多内联替换。
+
+该ENV指令有两种形式。第一种形式，ENV <key> <value>将一个变量设置为一个值。第一个空格后的整个字符串将被视为<value>- 包括空格字符。该值将针对其他环境变量进行解释，因此如果未对其进行转义，则将删除引号字符。
+
+第二种形式ENV <key>=<value> ...允许一次设置多个变量。请注意，第二种形式在语法中使用等号（=），而第一种形式则不然。与命令行解析一样，引号和反斜杠可用于在值内包含空格。
+
+例如：
+
+ENV myName="John Doe" myDog=Rex\ The\ Dog \
+    myCat=fluffy
+和
+
+ENV myName John Doe
+ENV myDog Rex The Dog
+ENV myCat fluffy
+
+ 将在最终图像中产生相同的净结果。
+
+
+注意：环境持久性可能会导致意外的副作用。例如，设置ENV DEBIAN_FRONTEND noninteractive可能会使基于Debian的图像上的apt-get用户感到困惑。要为单个命令设置值，请使用 RUN 
+
+<key>=<value> <command>。
+
+
+ADD
+ADD有两种形式：
+
+ADD [--chown=<user>:<group>] <src>... <dest>
+ADD [--chown=<user>:<group>] ["<src>",... "<dest>"] （包含空格的路径需要此表单）
+
+
+注意：该--chown功能仅在用于构建Linux容器的Dockerfiles上受支持，并且不适用于Windows容器。由于用户和组所有权概念不能在Linux和Windows之间进行转换，因此使用/etc/passwd
+
+和/etc/group将用户名和组名转换为ID会限制此功能仅适用于基于Linux OS的容器。
+
+
+该ADD指令从中复制新文件，目录或远程文件URL <src> ，并将它们添加到路径上图像的文件系统中<dest>。
+
+<src>可以指定多个资源，但如果它们是文件或目录，则它们的路径将被解释为相对于构建上下文的源。
+
+每个都<src>可能包含通配符，匹配将使用Go的 filepath.Match规则完成。例如：
+
+ADD hom* /mydir/        # adds all files starting with "hom"
+ADD hom?.txt /mydir/    # ? is replaced with any single character, e.g., "home.txt"
+
+
+的<dest>是一个绝对路径，或相对于一个路径WORKDIR，到其中的源将在目标容器内进行复制。
+
+ADD test relativeDir/          # adds "test" to `WORKDIR`/relativeDir/
+ADD test /absoluteDir/         # adds "test" to /absoluteDir/
+
+
+添加包含特殊字符（例如[ 和]）的文件或目录时，需要按照Golang规则转义这些路径，以防止它们被视为匹配模式。例如，要添加名为的文件arr[0].txt，请使用以下命令;
+
+ADD arr[[]0].txt /mydir/    # copy a file named "arr[0].txt" to /mydir/
+
+
+
+除非可选--chown标志指定给定用户名，组名或UID / GID组合以请求所添加内容的特定所有权，否则将使用UID和GID为0创建所有新文件和目录。--chown标志的格式允许用户名和组名字符串
+
+或任意组合的直接整数UID和GID。提供没有组名的用户名或没有GID的UID将使用与GID相同的数字UID。如果提供了用户名或组名，则容器的根文件系统 /etc/passwd和/etc/group文件将分别
+
+用于执行从名称到整数UID或GID的转换。以下示例显示了该--chown标志的有效定义：
+
+ADD --chown=55:mygroup files* /somedir/
+ADD --chown=bin files* /somedir/
+ADD --chown=1 files* /somedir/
+ADD --chown=10:11 files* /somedir/
+
+如果容器根文件系统不包含任何文件/etc/passwd或 /etc/group文件，并且--chown 标志中使用了用户名或组名，则构建将在ADD操作上失败。使用数字ID不需要查找，也不依赖于容器根文件
+
+系统内容。
+
+
+
+
+ADD 遵守以下规则：
+
+该<src>路径必须是内部语境的构建; 你不能ADD ../something /something，因为a的第一步 docker build是将上下文目录（和子目录）发送到docker守护程序。
+
+如果<src>是URL并且<dest>不以尾部斜杠结尾，则从URL下载文件并将其复制到<dest>。
+
+如果<src>是URL并且<dest>以尾部斜杠结尾，则从URL推断文件名并将文件下载到 <dest>/<filename>。例如，ADD http://example.com/foobar /将创建该文件/foobar。URL必须具有非常重
+
+要的路径，以便在这种情况下可以发现适当的文件名（http://example.com 不起作用）。
+
+如果<src>是目录，则复制目录的全部内容，包括文件系统元数据。
+
+
+
+除非可选--chown标志指定给定用户名，组名或UID / GID组合以请求复制内容的特定所有权，否则将使用UID和GID为0创建所有新文件和目录。--chown标志的格式允许用户名和组名字符串或
+
+任意组合的直接整数UID和GID。提供没有组名的用户名或没有GID的UID将使用与GID相同的数字UID。如果提供了用户名或组名，则容器的根文件系统 /etc/passwd和/etc/group文件将分别用
+
+于执行从名称到整数UID或GID的转换。以下示例显示了该--chown标志的有效定义：
+
+COPY --chown=55:mygroup files* /somedir/
+COPY --chown=bin files* /somedir/
+COPY --chown=1 files* /somedir/
+COPY --chown=10:11 files* /somedir/
+
+
+
+ENTRYPOINT有两种形式：
+
+ENTRYPOINT ["executable", "param1", "param2"] （执行形式，首选）
+ENTRYPOINT command param1 param2 （贝壳形式）
+
+
+例如，以下将使用其默认内容启动nginx，侦听端口80：
+
+docker run -i -t --rm -p 80:80 nginx
+
+
+FROM ubuntu
+ENTRYPOINT ["top", "-b"]
+CMD ["-c"]
+
+
+
+$ docker run -it --rm --name test  top -H
+top - 08:25:00 up  7:27,  0 users,  load average: 0.00, 0.01, 0.05
+Threads:   1 total,   1 running,   0 sleeping,   0 stopped,   0 zombie
+%Cpu(s):  0.1 us,  0.1 sy,  0.0 ni, 99.7 id,  0.0 wa,  0.0 hi,  0.0 si,  0.0 st
+KiB Mem:   2056668 total,  1616832 used,   439836 free,    99352 buffers
+KiB Swap:  1441840 total,        0 used,  1441840 free.  1324440 cached Mem
+
+  PID USER      PR  NI    VIRT    RES    SHR S %CPU %MEM     TIME+ COMMAND
+    1 root      20   0   19744   2336   2080 R  0.0  0.1   0:00.04 top
+
+
+以下Dockerfile显示使用ENTRYPOINT在前台运行Apache（即as PID 1）：
+
+FROM debian:stable
+RUN apt-get update && apt-get install -y --force-yes apache2
+EXPOSE 80 443
+VOLUME ["/var/www", "/var/log/apache2", "/etc/apache2"]
+ENTRYPOINT ["/usr/sbin/apache2ctl", "-D", "FOREGROUND"]
+
+
+
+卷
+https://docs.docker.com/storage/volumes/#populate-a-volume-using-a-container
+
+
+VOLUME ["/data"]
+该VOLUME指令创建具有指定名称的安装点，并将其标记为从本机主机或其他容器保存外部安装的卷。该值可以是JSON数组，VOLUME ["/var/log/"]或具有多个参数的普通字符串，例如VOLUME 
+
+/var/log或VOLUME /var/log /var/db。有关通过Docker客户端提供的更多信息/示例和安装说明，请参阅 通过卷共享目录 文档。
+
+该docker run命令使用基础映像中指定位置存在的任何数据初始化新创建的卷。例如，请考虑以下Dockerfile片段：
+
+FROM ubuntu
+RUN mkdir /myvol
+RUN echo "hello world" > /myvol/greeting
+VOLUME /myvol
+此Dockerfile会docker run生成一个图像，该图像将导致创建新的挂载点/myvol并将greeting文件复制 到新创建的卷中。
+
+JSON格式：列表被解析为JSON数组。您必须用双引号（"）而不是单引号（'）括起单词。
+
+
+
+WORKDIR
+WORKDIR /path/to/workdir
+
+WORKDIR /a
+WORKDIR b
+WORKDIR c
+RUN pwd
+最终pwd命令的输出Dockerfile将是 /a/b/c。
+
+
+ENV DIRPATH /path
+WORKDIR $DIRPATH/$DIRNAME
+RUN pwd
+最终pwd命令的输出Dockerfile将是 /path/$DIRNAME
+
+
+
+ARG
+ARG <name>[=<default value>]
+
+
+该ARG指令定义了一个变量，用户可以docker build使用该--build-arg <varname>=<value> 标志在构建时将该变量传递给构建器。如果用户指定了未在Dockerfile中定义的构建参数，则构建
+
+会输出警告。
+
+
+
+
+ARG
+ARG <name>[=<default value>]
+该ARG指令定义了一个变量，用户可以docker build使用该--build-arg <varname>=<value> 标志在构建时将该变量传递给构建器。如果用户指定了未在Dockerfile中定义的构建参数，则构建
+
+会输出警告。
+
+[Warning] One or more build-args [foo] were not consumed.
+Dockerfile可以包括一个或多个ARG指令。例如，以下是有效的Dockerfile：
+
+FROM busybox
+ARG user1
+ARG buildno
+...
+警告：建议不要使用构建时变量来传递密码，例如github密钥，用户凭据等docker history。使用该命令，构建时变量值对于映像的任何用户都是可见的。
+
+默认值
+的ARG指令可以可选地包括一个默认值：
+
+FROM busybox
+ARG user1=someuser
+ARG buildno=1
+...
+如果ARG指令具有默认值，并且在构建时没有传递值，则构建器将使用默认值。
+
+范围
+一个ARG变量定义进入从在其上在限定的线效果Dockerfile不从参数对命令行或其他地方使用。例如，考虑这个Dockerfile：
+
+1 FROM busybox
+2 USER ${user:-some_user}
+3 ARG user
+4 USER $user
+...
+用户通过调用以下内容构建此文件：
+
+$ docker build --build-arg user=what_user .
+第USER2行计算some_user为user变量在后续第3行定义。第USER4行计算结果what_user为user定义，并what_user在命令行上传递值。在通过ARG指令定义之前 ，对变量的任何使用都会导致空
+
+字符串。
+
+一个ARG指令超出范围在它被定义的构建阶段结束。要在多个阶段中使用arg，每个阶段都必须包含该ARG指令。
+
+FROM busybox
+ARG SETTINGS
+RUN ./run/setup $SETTINGS
+
+FROM busybox
+ARG SETTINGS
+RUN ./run/other $SETTINGS
+使用ARG变量
+您可以使用ARG或ENV指令指定指令可用的变量RUN。使用该ENV指令定义的环境变量 始终覆盖ARG同名指令。考虑这个Dockerfile和一个ENV和ARG指令。
+
+1 FROM ubuntu
+2 ARG CONT_IMG_VER
+3 ENV CONT_IMG_VER v1.0.0
+4 RUN echo $CONT_IMG_VER
+然后，假设使用此命令构建此映像：
+
+$ docker build --build-arg CONT_IMG_VER=v2.0.1 .
+在这种情况下，RUN指令使用v1.0.0而不是ARG用户传递的设置：v2.0.1此行为类似于shell脚本，其中本地范围的变量覆盖作为参数传递的变量或从其定义的环境继承的变量。
+
+使用上面的示例但不同的ENV规范，您可以在指令ARG和ENV指令之间创建更有用的交互：
+
+1 FROM ubuntu
+2 ARG CONT_IMG_VER
+3 ENV CONT_IMG_VER ${CONT_IMG_VER:-v1.0.0}
+4 RUN echo $CONT_IMG_VER
+与ARG指令不同，ENV值始终保留在构建的图像中。考虑没有--build-arg标志的docker构建：
+
+$ docker build .
+使用此Dockerfile示例CONT_IMG_VER仍然保留在图像中，但其值将是指令v1.0.0中第3行的默认值ENV。
+
+此示例中的变量扩展技术允许您从命令行传递参数，并通过利用该ENV指令将它们保留在最终图像中 。只有一组有限的Dockerfile指令支持变量扩展。
+
+预定义的ARG
+Docker有一组预定义ARG变量，您可以ARG在Dockerfile中使用相应的指令。
+
+HTTP_PROXY
+http_proxy
+HTTPS_PROXY
+https_proxy
+FTP_PROXY
+ftp_proxy
+NO_PROXY
+no_proxy
+要使用它们，只需使用标志在命令行上传递它们：
+
+--build-arg <varname>=<value>
+默认情况下，这些预定义变量将从输出中排除 docker history。排除它们可以降低在HTTP_PROXY变量中意外泄露敏感验证信息的风险。
+
+例如，考虑使用构建以下
+Dockerfile --build-arg HTTP_PROXY=http://user:pass@proxy.lon.example.com
+
+FROM ubuntu
+RUN echo "Hello World"
+在这种情况下，HTTP_PROXY变量的值在docker history和中不可用， 并且不会被缓存。如果您要更改位置，并且您的代理服务器已更改为http://user:pass@proxy.sfo.example.com，则后续
+
+构建不会导致缓存未命中。
+
+如果需要覆盖此行为，则可以通过ARG 在Dockerfile中添加语句来执行此操作，如下所示：
+
+FROM ubuntu
+ARG HTTP_PROXY
+RUN echo "Hello World"
+构建此Dockerfile时，HTTP_PROXY会保留在其中 docker history，并且更改其值会使构建缓存无效。
+
+对构建缓存的影响
+ARG变量不会像ENV变量那样持久保存在构建的图像中。但是，ARG变量确实以类似的方式影响构建缓存。如果Dockerfile定义了一个ARG值与前一个版本不同的变量，则在第一次使用时会发生
+
+“缓存未命中”，而不是其定义。特别是，RUN指令后面的所有指令都 隐式ARG使用ARG变量（作为环境变量），因此可能导致高速缓存未命中。ARG除非在中包含匹配的ARG语句，否则所有预
+
+定义变量都将免于缓存Dockerfile。
+
+例如，考虑这两个Dockerfile：
+
+1 FROM ubuntu
+2 ARG CONT_IMG_VER
+3 RUN echo $CONT_IMG_VER
+1 FROM ubuntu
+2 ARG CONT_IMG_VER
+3 RUN echo hello
+如果--build-arg CONT_IMG_VER=<value>在命令行中指定，则在两种情况下，第2行上的规范都不会导致高速缓存未命中; 第3行确实导致缓存未命中。ARG CONT_IMG_VER导致RUN行被识别为与
+
+运行CONT_IMG_VER=<value>echo hello 相同，因此如果<value> 更改，我们将获得缓存未命中。
+
+考虑同一命令行下的另一个示例：
+
+1 FROM ubuntu
+2 ARG CONT_IMG_VER
+3 ENV CONT_IMG_VER $CONT_IMG_VER
+4 RUN echo $CONT_IMG_VER
+在此示例中，高速缓存未命中发生在第3行。发生未命中是因为ENV引用ARG变量的变量值和通过命令行更改了该变量。在此示例中，该ENV 命令使图像包含该值。
+
+如果一条ENV指令覆盖了一个ARG同名的指令，比如这个Dockerfile：
+
+1 FROM ubuntu
+2 ARG CONT_IMG_VER
+3 ENV CONT_IMG_VER hello
+4 RUN echo $CONT_IMG_VER
+第3行不会导致缓存未命中，因为值为CONT_IMG_VER常量（hello）。因此，RUN（第4行）上使用的环境变量和值在构建之间不会发生变化。
+
+
+
+
+ONBUILD
+ONBUILD [INSTRUCTION]
+
+[...]
+ONBUILD ADD . /app/src
+ONBUILD RUN /usr/local/bin/python-build --dir /app/src
+[...]
+
+
+
+SHELL 
+
+SHELL ["executable", "parameters"]
+
+该SHELL指令允许覆盖用于shell形式的命令的默认shell 。Linux上的默认shell是["/bin/sh", "-c"]，而在Windows上["cmd", "/S", "/C"]。该SHELL指令必须以JSON格式写入Dockerfile。
+
+
+该SHELL指令可以多次出现。每条SHELL指令都会覆盖所有先前的SHELL指令，并影响所有后续指令。例如：
+
+FROM microsoft/windowsservercore
+
+# Executed as cmd /S /C echo default
+RUN echo default
+
+# Executed as cmd /S /C powershell -command Write-Host default
+RUN powershell -command Write-Host default
+
+# Executed as powershell -command Write-Host hello
+SHELL ["powershell", "-command"]
+RUN Write-Host hello
+
+# Executed as cmd /S /C echo hello
+SHELL ["cmd", "/S", "/C"]
+RUN echo hello
+
+Dockerfile示例
+下面您可以看到Dockerfile语法的一些示例。如果您对更现实的东西感兴趣，请查看Docker化示例列表。
+
+# Nginx
+#
+# VERSION               0.0.1
+
+FROM      ubuntu
+LABEL Description="This image is used to start the foobar executable" Vendor="ACME Products" Version="1.0"
+RUN apt-get update && apt-get install -y inotify-tools nginx apache2 openssh-server
+# Firefox over VNC
+#
+# VERSION               0.3
+
+FROM ubuntu
+
+# Install vnc, xvfb in order to create a 'fake' display and firefox
+RUN apt-get update && apt-get install -y x11vnc xvfb firefox
+RUN mkdir ~/.vnc
+# Setup a password
+RUN x11vnc -storepasswd 1234 ~/.vnc/passwd
+# Autostart firefox (might not be the best way, but it does the trick)
+RUN bash -c 'echo "firefox" >> /.bashrc'
+
+EXPOSE 5900
+CMD    ["x11vnc", "-forever", "-usepw", "-create"]
+# Multiple images example
+#
+# VERSION               0.1
+
+FROM ubuntu
+RUN echo foo > bar
+# Will output something like ===> 907ad6c2736f
+
+FROM ubuntu
+RUN echo moo > oink
+# Will output something like ===> 695d7793cbe4
+
+# You'll now have two images, 907ad6c2736f with /bar, and 695d7793cbe4 with

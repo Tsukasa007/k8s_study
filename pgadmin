@@ -1,0 +1,8 @@
+docker run -it --name pgadmin \
+-e SERVER_MODE=true \
+-e PGADMIN_DEFAULT_EMAIL=qhzhang@tplhk.cntaiping.com \
+-e PGADMIN_DEFAULT_PASSWORD=123456 \
+-v /data/dockerpgadmindata/data:/var/lib/pgadmin \
+-v /data/dockerpgadmindata/cert/server.cert:/certs/server.cert  \
+-v /data/dockerpgadmindata/cert/server.key:/certs/server.key \
+-d -p 80:80  dpage/pgadmin4

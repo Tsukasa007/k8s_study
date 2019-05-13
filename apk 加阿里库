@@ -1,0 +1,4 @@
+
+RUN echo -e "http://mirrors.aliyun.com/alpine/latest-stable/main\n\
+http://mirrors.aliyun.com/alpine/latest-stable/community" > /etc/apk/repositories
+

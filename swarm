@@ -1,0 +1,50 @@
+Swarm是集群的架构，是集群就会有节点，有节点就会有角色
+
+Node有两种角色
+
+1 manager 集群的大脑，为避免单点故障，所以必须要有两台，两台就需要状态同步，数据如何同步到另外一台manager上，此时会用到一个内置的分布式存储数据库，是通过gossip协议做的同步，确保两个节点是同步的
+2 worker 
+
+在joker和smoker拉取镜像
+docker pull swarm
+
+在joker执行
+docker run --rm swarm create 
+
+初始化时需要宣告一个地址
+docker swarm init --advertise-addr=192.168.205.10
+
+会返回一条提示：
+to add a worker to this swarm ,run the following command:
+   docker swarm join --token SWAMTKN-1-3lksjdflsajdfdujjkadhfksdjahfkasjahdfksajhuerfewbg 192.168.205.10:2377
+   
+把这条指令复制到worker节点执行。
+
+返回一条token数据，保存好，在smoker用到
+
+在smoker执行
+docker run -d swarm join --addr=10.0.0.125:2375 token://token值
+
+同时在joker上执行
+docker run -d swarm join --addr=10.0.0.125:2375 token://token值
+
+以上创建了两个swarm代理
+查看smoker日志
+docker logs b5fbdsaf
+
+
+列出swarm节点
+docker run --rm swarm list token://tocken 值
+
+启动集群管理者
+docker run -d -p 2380:2375 swarm manage tocken 值
+
+在swarm集群中运行docker info命令
+docker-H tcp://localhost：2380 info
+
+
+显示当前所有节点
+docker node ls
+
+
+

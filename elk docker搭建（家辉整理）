@@ -1,0 +1,135 @@
+docker pull elasticsearch:6.6.1
+
+
+
+//监控插件  不要也可以
+docker run -d -p 9100:9100 --name leon_elasticsearch-head mobz/elasticsearch-head:5
+
+//elasticsearch
+docker run -d -p 9200:9200 -p 9300:9300 -e "discovery.type=single-node"  --name elasticsearch  elasticsearch:6.6.1
+	检查: http://192.168.3.100:9200/
+
+//kibana
+docker run -d --name kibana -p 5601:5601 -d -e ELASTICSEARCH_URL=http://192.168.3.100:9200 kibana:6.6.1
+	检查: 登录192.168.3.100:5601
+注意: 不会自动建立索引.
+
+//logstash先不用这个
+docker run -d  -p 5044:5044 -p 9600:9600 -p 9250:9250 -it -v /data/catt/logstash/config/:/usr/share/logstash/config/ --name logstash  logstash:6.6.1
+	检查: telnet 9250
+
+//logstash 
+docker run -d --net host -it -v /data/catt/logstash/config/:/usr/share/logstash/config/ --name logstash  logstash:6.6.1
+
+docker run -dit   --net host  -v /data/catt/logstash/config/:/usr/share/logstash/config/ --name logstash  logstash:6.6.1
+注意 挂载文件的config 需要正确,如果对自己不自信,可以去官网下载原本的logstash  复制config出来然后cp 到-v 挂载目录上
+也可以 exec 进去 cp出来改再 -v 启动回去
+
+
+修改pipelines.yml  增加配置
+- pipeline.id: filebeat-log
+  path.config: "/usr/share/logstash/config/*.conf"
+
+config/ 内新建logstash-elasticsearc.conf
+input {
+	tcp{
+		host => "192.168.3.100"
+		port => 9250
+		mode => "server"
+		tags => ["tags"]
+		codec => json_lines
+	}
+}
+
+output {
+	stdout { codec => rubydebug }
+	elasticsearch { hosts => "192.168.3.100:9200" }
+}
+
+重新启动logstash
+
+
+
+
+
+
+启动失败，检查没有通过，报错
+
+[2018-05-18T17:44:59,658][INFO ][o.e.b.BootstrapChecks    ] [gFOuNlS] bound or publishing to a non-loopback address, enforcing bootstrap checks
+ERROR: [2] bootstrap checks failed
+[1]: max file descriptors [4096] for elasticsearch process is too low, increase to at least [65536]
+
+[2]: max virtual memory areas vm.max_map_count [65530] is too low, increase to at least [262144]
+
+[1]: max file descriptors [65535] for elasticsearch process is too low, increase to at least [65536]
+
+编辑 /etc/security/limits.conf，追加以下内容；
+* soft nofile 65536
+* hard nofile 65536
+此文件修改后需要重新登录用户，才会生效
+
+[2]: max virtual memory areas vm.max_map_count [65530] is too low, increase to at least [262144]
+
+编辑 /etc/sysctl.conf，追加以下内容：
+vm.max_map_count=655360
+保存后，执行：
+
+sysctl -p
+
+重新启动，成功。
+
+
+
+
+
+
+
+
+
+
+
+
+下面的没啥用
+
+docker cp elasticsearch:/usr/share/elasticsearch/config/elasticsearch.yml /data/catt/docker/tmp
+
+docker cp /data/catt/docker/tmp/elasticsearch.yml elasticsearch:/usr/share/elasticsearch/config/elasticsearch.yml
+
+
+curl -O https://download.elastic.co/demos/kibana/gettingstarted/7.x/shakespeare.json
+curl -O https://download.elastic.co/demos/kibana/gettingstarted/7.x/accounts.zip
+curl -O https://download.elastic.co/demos/kibana/gettingstarted/7.x/logs.jsonl.gz
+
+unzip accounts.zip
+gunzip logs.jsonl.gz
+
+curl -H 'Content-Type: application/x-ndjson' -XPOST 'localhost:9200/bank/account/_bulk?pretty' --data-binary @accounts.json
+curl -H 'Content-Type: application/x-ndjson' -XPOST 'localhost:9200/shakespeare/_bulk?pretty' --data-binary @shakespeare.json
+curl -H 'Content-Type: application/x-ndjson' -XPOST 'localhost:9200/_bulk?pretty' --data-binary @logs.jsonl
+
+input {
+	tcp{
+		host => "192.168.3.100"
+		port => 9250
+		mode => "server"
+		tags => ["tags"]
+		codec => json_lines
+	}
+}
+
+output {
+	stdout { codec => rubydebug }
+	elasticsearch { hosts => "192.168.3.100:9200" }
+}
+
+
+./bin/plugin install logstash-codec-json_lines
+
+
+docker run -d --net host -it  --name logstash  logstash:6.6.1 -e 'input { tcp{ host => "192.168.3.100" port => 9250 mode => "server" tags => ["tags"] codec => json_lines } } output { stdout { codec => rubydebug } elasticsearch { hosts => "192.168.3.100:9200" } }'
+
+
+docker run -it --rm logstash -e 'input { stdin { } } filter { kv { source => "message" field_split => "|" value_split => "=" } kv { source => "args" field_split => "&" value_split => "=" } } output { elasticsearch {  hosts => ["172.17.0.2:9200"] } stdout { codec => rubydebug } }'
+
+
+docker run -d --net host -it -v /data/catt/logstash/config/:/usr/share/logstash/config/ --name logstash  logstash:6.6.1

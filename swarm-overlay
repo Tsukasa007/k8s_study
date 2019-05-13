@@ -1,0 +1,223 @@
+在swarm-manager上
+
+[root@swarm-manager ~]# docker swarm init --advertise-addr=192.168.224.152
+Swarm initialized: current node (29mzp1pdzj0yivhlb4cdby3p5) is now a manager.
+
+To add a worker to this swarm, run the following command:
+
+    docker swarm join --token SWMTKN-1-07w0qpwu5819g1k38no24l4y6n6m1s1zoz8m0l2xxrcem6l5r9-6fqcn83cke3udbwqxtenhv6q4 192.168.224.152:2377
+
+To add a manager to this swarm, run 'docker swarm join-token manager' and follow the instructions.
+
+
+
+在swarm-worker1上
+
+[root@swarm-worker1 ~]# docker swarm join --token SWMTKN-1-07w0qpwu5819g1k38no24l4y6n6m1s1zoz8m0l2xxrcem6l5r9-6fqcn83cke3udbwqxtenhv6q4 192.168.224.152:2377
+This node joined a swarm as a worker.
+
+
+在swarm-worker2上
+[root@swarm-worker2 ~]# docker swarm join --token SWMTKN-1-07w0qpwu5819g1k38no24l4y6n6m1s1zoz8m0l2xxrcem6l5r9-6fqcn83cke3udbwqxtenhv6q4 192.168.224.152:2377
+This node joined a swarm as a worker.
+
+
+***在swam中不用docker run,而是用docker service
+
+
+[root@swarm-manager ~]# docker service
+
+Usage:	docker service COMMAND
+
+Manage services
+
+Options:
+
+
+Commands:
+  create      Create a new service
+  inspect     Display detailed information on one or more services
+  logs        Fetch the logs of a service or task
+  ls          List services
+  ps          List the tasks of one or more services
+  rm          Remove one or more services
+  rollback    Revert changes to a service's configuration
+  scale       Scale one or multiple replicated services
+  update      Update a service
+
+Run 'docker service COMMAND --help' for more information on a command.
+
+[root@swarm-manager ~]# docker service create --name demo busybox sh -c "while true; do sleep 3600;done"
+5gi5xabx7mvhf655ozvgdck4n
+overall progress: 1 out of 1 tasks
+1/1: running   [==================================================>]
+verify: Service converged
+
+[root@swarm-manager ~]# docker service ls
+ID                  NAME                MODE                REPLICAS            IMAGE               PORTS
+5gi5xabx7mvh        demo                replicated          1/1                 busybox:latest
+
+
+
+[root@swarm-manager ~]# docker service ps demo
+ID                  NAME                IMAGE               NODE                DESIRED STATE       CURRENT STATE           ERROR               PORTS
+v7texyjwe0xy        demo.1              busybox:latest      swarm-manager       Running             Running 5 minutes ago
+
+
+[root@swarm-manager ~]# docker ps
+CONTAINER ID        IMAGE               COMMAND                  CREATED             STATUS              PORTS               NAMES
+3a9460d2ac8f        busybox:latest      "sh -c 'while true; …"   6 minutes ago       Up 6 minutes                            demo.1.v7texyjwe0xymff9dhr8t13u3
+
+
+[root@swarm-manager ~]# docker service scale
+"docker service scale" requires at least 1 argument.
+See 'docker service scale --help'.
+
+Usage:  docker service scale SERVICE=REPLICAS [SERVICE=REPLICAS...] [flags]
+
+Scale one or multiple replicated services
+
+
+
+
+[root@swarm-manager ~]# docker service scale demo=5
+demo scaled to 5
+overall progress: 5 out of 5 tasks
+1/5: running   [==================================================>]
+2/5: running   [==================================================>]
+3/5: running   [==================================================>]
+4/5: running   [==================================================>]
+5/5: running   [==================================================>]
+verify: Service converged
+
+
+
+[root@swarm-manager ~]# docker service ls
+ID                  NAME                MODE                REPLICAS            IMAGE               PORTS
+5gi5xabx7mvh        demo                replicated          5/5                 busybox:latest
+
+
+[root@swarm-manager ~]# docker service ps demo
+ID                  NAME                IMAGE               NODE                DESIRED STATE       CURRENT STATE            ERROR               PORTS
+v7texyjwe0xy        demo.1              busybox:latest      swarm-manager       Running             Running 10 minutes ago
+1re19c8hrvo3        demo.2              busybox:latest      swarm-manager       Running             Running 2 minutes ago
+dimdkckr71gd        demo.3              busybox:latest      swarm-worker1       Running             Running 2 minutes ago
+pwb2kjs2nxue        demo.4              busybox:latest      swarm-worker2       Running             Running 2 minutes ago
+i6g47scozbpj        demo.5              busybox:latest      swarm-worker2       Running             Running 2 minutes ago
+
+
+
+
+
+验证，在swarm-worker2上
+[root@swarm-worker2 ~]# docker ps
+CONTAINER ID        IMAGE               COMMAND                  CREATED             STATUS              PORTS                    NAMES
+6113229eff80        busybox:latest      "sh -c 'while true; …"   5 minutes ago       Up 5 minutes                                 demo.4.pwb2kjs2nxuere32g5135ohml
+dde67ac681ff        busybox:latest      "sh -c 'while true; …"   5 minutes ago       Up 5 minutes                                 demo.5.i6g47scozbpj3it722s76ipt7
+
+
+删掉其中一个容器
+[root@swarm-worker2 ~]# docker rm -f 6113229eff80
+6113229eff80
+
+
+
+[root@swarm-manager ~]# docker service ps demo
+ID                  NAME                IMAGE               NODE                DESIRED STATE       CURRENT STATE               ERROR          PORTS
+v7texyjwe0xy        demo.1              busybox:latest      swarm-manager       Running             Running 15 minutes ago
+1re19c8hrvo3        demo.2              busybox:latest      swarm-manager       Running             Running 7 minutes ago
+dimdkckr71gd        demo.3              busybox:latest      swarm-worker1       Running             Running 7 minutes ago
+xhwkxe0kr4e0        demo.4              busybox:latest      swarm-worker1       Running             Running 58 seconds ago
+pwb2kjs2nxue         \_ demo.4          busybox:latest      swarm-worker2       Shutdown            Failed about a minute ago   "task: non-zero exit (137)"
+i6g47scozbpj        demo.5              busybox:latest      swarm-worker2       Running             Running 7 minutes ago
+
+在swarm-worker2删掉一个容器，在swarm-worker1又启动了一个，保持5个数量不变
+
+[root@swarm-manager ~]# docker service ls
+ID                  NAME                MODE                REPLICAS            IMAGE               PORTS
+5gi5xabx7mvh        demo                replicated          5/5                 busybox:latest
+
+
+删掉所有容器服务
+[root@swarm-manager ~]# docker service rm  demo
+demo
+
+
+
+[root@swarm-manager ~]# docker service ps demo
+no such service: demo
+
+
+overlay
+
+[root@swarm-manager ~]# docker network create -d overlay demo
+uczd83yhh1tu85n05k289w5ue
+
+[root@swarm-manager ~]# docker network ls
+NETWORK ID          NAME                DRIVER              SCOPE
+uczd83yhh1tu        demo                overlay             swarm
+
+
+Worker1和Worker2都没有demo
+
+在swarm-manager创建mysql
+
+[root@swarm-manager ~]# docker service create --name mysql --env MYSQL_ROOT_PASSWORD=root --env MYSQL_DATABASE=wordpress --network demo --mount type=volume,source=mysql-data,destination=/var/lib/mysql mysql
+zlasz0vysylr9ubk1ypo9e1pi
+overall progress: 1 out of 1 tasks
+1/1: running   [==================================================>]
+verify: Service converged
+
+***这里用了--mount，而不用 -v 
+
+
+
+
+[root@swarm-manager ~]# docker service ls
+ID                  NAME                MODE                REPLICAS            IMAGE               PORTS
+zlasz0vysylr        mysql               replicated          1/1                 mysql:latest
+
+
+
+[root@swarm-manager ~]# docker service ps mysql
+ID                  NAME                IMAGE               NODE                DESIRED STATE       CURRENT STATE           ERROR               PORTS
+ebmfreq0zdnb        mysql.1             mysql:latest        swarm-manager       Running             Running 2 minutes ago
+
+
+[root@swarm-manager ~]# docker service create --name wordpress -p 80:80 --env WORDPRESS_DB_PASSWORD=root --env WORDPRESS_DB_HOST=mysql --network demo wordpress
+pc9rka99yi1627uhsfxiquzol
+overall progress: 1 out of 1 tasks
+1/1: running   [==================================================>]
+verify: Service converged
+
+
+
+[root@swarm-manager ~]# docker service ps wordpress
+ID                  NAME                IMAGE               NODE                DESIRED STATE       CURRENT STATE            ERROR               PORTS
+bss0a4exg8q9        wordpress.1         wordpress:latest    swarm-worker2       Running             Running 25 seconds ago
+
+
+
+在swarm-worker2上验证
+[root@swarm-worker2 ~]# docker ps
+CONTAINER ID        IMAGE               COMMAND                  CREATED             STATUS              PORTS                    NAMES
+b1a30b1d3f30        wordpress:latest    "docker-entrypoint.s…"   2 minutes ago       Up 2 minutes        80/tcp                   wordpress.1.bss0a4e
+
+
+通过swarm-worker2节点的ip访问 http://192.168.224.143
+
+通过swarm-worker1节点的ip同样可以访问 192.168.224.142
+
+在swam manger创建了overlay的network driver demo ，但是在worker1并没有发现demo
+
+worker2发现有demo
+
+[root@swarm-worker2 ~]# docker network ls
+NETWORK ID          NAME                DRIVER              SCOPE
+uczd83yhh1tu        demo                overlay             swarm
+
+
+在没启动servic之前，是没有demo的，例如worker1，worker2因为有容器运行，所以有demo
+以前用etcd做分布式存储，但是现在swam是不需要etcd做overlay分布式存储的，swam自有这样的功能。
+
+

@@ -1,0 +1,849 @@
+docker pull gitlab/gitlab-ce:latest
+
+getenforce
+
+setenforce  0
+
+vi /etc/selinux/config
+
+将SELINUX=enforcing 改为SELINUX=disabled
+
+
+mkdir -p /srv/gitlab/data
+mkdir -p /srv/gitlab/logs
+mkdir -p /srv/gitlab/config
+
+
+
+
+
+官方
+ sudo docker run --detach \
+ --hostname gitlab.example.com \
+ --publish 443:443 --publish 80:80 --publish 22:22 \
+ --name gitlab \
+ --restart always \
+ --volume /srv/gitlab/config:/etc/gitlab \
+ --volume /srv/gitlab/logs:/var/log/gitlab \
+ --volume /srv/gitlab/data:/var/opt/gitlab \
+ gitlab/gitlab-ce:latest
+
+
+
+启动gitlab
+
+sudo docker run --detach \
+  --hostname gitlab.example.com \
+  --publish 443:443 --publish 80:80 --publish 22:22 \
+  --name gitlab \
+  --restart always \
+  --volume /srv/gitlab/config:/etc/gitlab \
+  --volume /srv/gitlab/logs:/var/log/gitlab \
+  --volume /srv/gitlab/data:/var/opt/gitlab \
+  gitlab/gitlab-ce:latest
+
+
+
+
+
+可能遇到的问题
+
+添加sshkey依然拉取不了代码
+
+ GitLab 镜像启动后是占用容器的 22 端口，而我是使用宿主机的 4422 端口跟 GitLab 容器 22 端口进行的映射，主要是防止和我宿主机 22 端口冲突。想到问题的
+
+关键，解决就简单了，编辑 GitLab 配置文件，指定 SSH 端口为 4422 即可。
+
+[root@izwz9cjwo2hniwcakynyg1z ~]# cd /data/docker/volumes/gitlab/
+[root@izwz9cjwo2hniwcakynyg1z gitlab]# vim config/gitlab.rb
+gitlab_rails['gitlab_shell_ssh_port'] = 4422
+
+# 重启容器
+[root@izwz9cjwo2hniwcakynyg1z gitlab]# docker container restart gitlab
+
+
+
+
+
+
+
+官方说明文档
+
+https://docs.gitlab.com/omnibus/docker/README.html#after-starting-a-container
+https://docs.gitlab.com/omnibus/docker/README.html
+
+
+
+
+GitLab Docker图像
+GitLab CE和EE都在Docker Hub中：
+
+GitLab CE Docker镜像
+GitLab EE Docker镜像
+GitLab Docker镜像是GitLab的单片图像，在单个容器上运行所有必要的服务。
+
+在以下示例中，我们使用GitLab CE的图像。要使用GitLab EE而不是GitLab CE，请将图像名称替换为gitlab/gitlab-ee:latest。
+
+如果要使用最新的RC映像，请分别使用gitlab/gitlab-ce:rc或 gitlab/gitlab-ee:rc用于GitLab CE和GitLab EE。
+
+GitLab Docker镜像可以多种方式运行：
+
+在Docker Engine中运行映像
+将GitLab安装到群集中
+使用docker-compose安装GitLab
+先决条件
+需要Docker安装，请参阅官方安装文档。
+
+注意：建议 使用本机Docker安装而不是Docker Toolbox以使用持久卷
+警告： 我们不正式支持在Docker for Windows上运行。卷权限存在已知问题，可能存在其他未知问题。如果您尝试在Docker for Windows上运行，请参阅我们获取帮助页面以获取社区资源（IRC，论坛等）的链接，以寻求其他用户的帮助。
+运行图像
+运行图像：
+
+sudo docker run --detach \
+  --hostname gitlab.example.com \
+  --publish 443:443 --publish 80:80 --publish 22:22 \
+  --name gitlab \
+  --restart always \
+  --volume /srv/gitlab/config:/etc/gitlab \
+  --volume /srv/gitlab/logs:/var/log/gitlab \
+  --volume /srv/gitlab/data:/var/opt/gitlab \
+  gitlab/gitlab-ce:latest
+
+这将下载并启动GitLab CE容器并发布访问SSH，HTTP和HTTPS所需的端口。所有GitLab数据都将存储为子目录 /srv/gitlab/。restart系统重启后，容器将自动运行。
+
+您现在可以按照启动容器后的说明登录Web界面 。
+
+如果你在SELinux上，那么运行它：
+
+sudo docker run --detach \
+  --hostname gitlab.example.com \
+  --publish 443:443 --publish 80:80 --publish 22:22 \
+  --name gitlab \
+  --restart always \
+  --volume /srv/gitlab/config:/etc/gitlab:Z \
+  --volume /srv/gitlab/logs:/var/log/gitlab:Z \
+  --volume /srv/gitlab/data:/var/opt/gitlab:Z \
+  gitlab/gitlab-ce:latest
+
+这将确保Docker进程具有足够的权限来在已装入的卷中创建配置文件。
+
+如果您正在使用Kerberos集成 ，那么您还需要发布您的Kerberos端口（例如--publish 8443:8443）。如果不这样做，将阻止通过Kerberos进行Git操作。
+
+数据存储在哪里？
+GitLab容器使用主机安装的卷来存储持久数据：
+
+当地的位置	集装箱位置	用法
+/srv/gitlab/data	/var/opt/gitlab	用于存储应用数据
+/srv/gitlab/logs	/var/log/gitlab	用于存储日志
+/srv/gitlab/config	/etc/gitlab	用于存储GitLab配置文件
+您可以微调这些目录以满足您的要求。
+
+配置GitLab
+此容器使用官方的Omnibus GitLab软件包，因此所有配置都在唯一的配置文件中完成/etc/gitlab/gitlab.rb。
+
+要访问GitLab的配置文件，您可以在正在运行的容器的上下文中启动shell会话。这将允许您浏览所有目录并使用您喜欢的文本编辑器：
+
+sudo docker exec -it gitlab /bin/bash
+
+您也可以编辑/etc/gitlab/gitlab.rb：
+
+sudo docker exec -it gitlab editor /etc/gitlab/gitlab.rb
+
+打开后，请/etc/gitlab/gitlab.rb确保将指针设置external_url为有效的URL。
+
+要从GitLab接收电子邮件，您必须配置 SMTP设置，因为GitLab Docker映像没有安装SMTP服务器。
+
+您可能还对启用HTTPS感兴趣。
+
+完成所需的所有更改后，需要重新启动容器才能重新配置GitLab：
+
+sudo docker restart gitlab
+
+注意： GitLab将在容器启动时重新配置。
+有关配置GitLab的更多选项，请查看 Omnibus GitLab文档。
+
+预配置Docker容器
+您可以通过将环境变量添加GITLAB_OMNIBUS_CONFIG到docker run命令来预配置GitLab Docker映像。此变量可以包含任何gitlab.rb设置，并在加载容器gitlab.rb文件之前进行评估。这样，您可以轻松配置GitLab的外部URL，从Omnibus GitLab模板进行任何数据库配置或任何其他选项 。
+
+注意：包含的设置GITLAB_OMNIBUS_CONFIG不会写入gitlab.rb配置文件，而是在加载时进行评估。
+
+这是一个设置外部URL并在启动容器时启用LFS的示例：
+
+sudo docker run --detach \
+  --hostname gitlab.example.com \
+  --env GITLAB_OMNIBUS_CONFIG="external_url 'http://my.domain.com/'; gitlab_rails['lfs_enabled'] = true;" \
+  --publish 443:443 --publish 80:80 --publish 22:22 \
+  --name gitlab \
+  --restart always \
+  --volume /srv/gitlab/config:/etc/gitlab \
+  --volume /srv/gitlab/logs:/var/log/gitlab \
+  --volume /srv/gitlab/data:/var/opt/gitlab \
+  gitlab/gitlab-ce:latest
+
+请注意，每次执行docker run命令时，都需要提供该GITLAB_OMNIBUS_CONFIG选项。的内容GITLAB_OMNIBUS_CONFIG是 不保留后续运行之间。
+
+启动容器后
+启动容器后，如果使用boot2docker，则可以访问http：// localhost /或 http://192.168.59.103。Docker容器开始响应查询可能需要一段时间。
+
+注意： 初始化过程可能需要很长时间。您可以使用该命令跟踪此过程sudo docker logs -f gitlab
+您第一次访问GitLab时，系统会要求您设置管理员密码。更改后，您可以使用root您设置的用户名和密码登录。
+
+将GitLab升级到更新版本
+要将GitLab升级到新版本，您必须：
+
+停止正在运行的容器：
+
+ sudo docker stop gitlab
+
+删除现有容器：
+
+ sudo docker rm gitlab
+
+拉新图片：
+
+ sudo docker pull gitlab/gitlab-ce:latest
+
+使用先前指定的选项再次创建容器：
+
+ sudo docker run --detach \
+ --hostname gitlab.example.com \
+ --publish 443:443 --publish 80:80 --publish 22:22 \
+ --name gitlab \
+ --restart always \
+ --volume /srv/gitlab/config:/etc/gitlab \
+ --volume /srv/gitlab/logs:/var/log/gitlab \
+ --volume /srv/gitlab/data:/var/opt/gitlab \
+ gitlab/gitlab-ce:latest
+
+在第一次运行时，GitLab将重新配置和更新自己。
+
+使用标记版本的GitLab
+我们提供GitLab Docker镜像的标记版本。
+
+要查看所有可用标签，请检查：
+
+GitLab-CE标签和
+GitLab-EE标签
+例如，要使用特定的标记版本，请替换gitlab/gitlab-ce:latest为要运行的GitLab版本gitlab/gitlab-ce:8.4.3。
+
+在公共IP地址上运行GitLab CE
+您可以使Docker使用您的IP地址，并通过修改--publish标志将所有流量转发到GitLab CE容器。
+
+在IP 198.51.100.1上公开GitLab CE：
+
+sudo docker run --detach \
+  --hostname gitlab.example.com \
+  --publish 198.51.100.1:443:443 \
+  --publish 198.51.100.1:80:80 \
+  --publish 198.51.100.1:22:22 \
+  --name gitlab \
+  --restart always \
+  --volume /srv/gitlab/config:/etc/gitlab \
+  --volume /srv/gitlab/logs:/var/log/gitlab \
+  --volume /srv/gitlab/data:/var/opt/gitlab \
+  gitlab/gitlab-ce:latest
+
+然后，您可以在http://198.51.100.1/和访问您的GitLab实例https://198.51.100.1/。
+
+在不同的端口上公开GitLab
+GitLab将占用 容器内的一些端口。
+
+如果要使用与80（HTTP）或443（HTTPS）不同的主机端口，则需要向命令添加单独的--publish指令docker run。
+
+请勿使用上述任何端口来替换默认值80或 容器443 内部，否则会出现冲突。
+
+例如，要在端口上公开Web界面，在端口上公开8929SSH服务2289，请使用以下docker run命令：
+
+sudo docker run --detach \
+  --hostname gitlab.example.com \
+  --publish 8929:80 --publish 2289:22 \
+  --name gitlab \
+  --restart always \
+  --volume /srv/gitlab/config:/etc/gitlab \
+  --volume /srv/gitlab/logs:/var/log/gitlab \
+  --volume /srv/gitlab/data:/var/opt/gitlab \
+  gitlab/gitlab-ce:latest
+
+注意： 发布端口的格式为hostPort:containerPort。有关暴露传入端口的详细信息，请参阅Docker的文档。
+然后，您需要适当配置gitlab.rb：
+
+设置external_url：
+
+ # For HTTP
+ external_url "http://gitlab.example.com:8929"
+
+ or
+
+ # For HTTPS (notice the https)
+ external_url "https://gitlab.example.com:8929"
+
+有关更多信息，请参阅NGINX文档。
+
+设置gitlab_shell_ssh_port：
+
+ gitlab_rails['gitlab_shell_ssh_port'] = 2289
+
+按照上面的示例，您将能够通过Web浏览器访问GitLab，<hostIP>:8929并在端口下使用SSH进行推送2289。
+
+甲docker-compose.yml使用不同的端口的例子可以在找到 搬运工-撰写部分。
+
+诊断潜在问题
+读取容器日志：
+
+sudo docker logs gitlab
+
+输入运行容器：
+
+sudo docker exec -it gitlab /bin/bash
+
+在容器内，您可以像管理Omnibus安装一样管理GitLab容器
+
+使用docker-compose安装GitLab
+使用Docker撰写，您可以轻松配置，安装和升级基于Docker的GitLab安装。
+
+安装 Docker Compose
+创建docker-compose.yml文件（或下载示例）：
+
+ web:
+   image: 'gitlab/gitlab-ce:latest'
+   restart: always
+   hostname: 'gitlab.example.com'
+   environment:
+     GITLAB_OMNIBUS_CONFIG: |
+       external_url 'https://gitlab.example.com'
+       # Add any other gitlab.rb configuration here, each on its own line
+   ports:
+     - '80:80'
+     - '443:443'
+     - '22:22'
+   volumes:
+     - '/srv/gitlab/config:/etc/gitlab'
+     - '/srv/gitlab/logs:/var/log/gitlab'
+     - '/srv/gitlab/data:/var/opt/gitlab'
+
+确保您docker-compose.yml与运行docker-compose up -dGitLab 在同一目录中并运行
+阅读“预配置Docker容器”以查看GITLAB_OMNIBUS_CONFIG变量的工作原理。
+
+下面是另一个docker-compose.yml在自定义HTTP和SSH端口上运行GitLab的示例。注意GITLAB_OMNIBUS_CONFIG变量如何与该ports部分匹配 ：
+
+web:
+  image: 'gitlab/gitlab-ce:latest'
+  restart: always
+  hostname: 'gitlab.example.com'
+  environment:
+    GITLAB_OMNIBUS_CONFIG: |
+      external_url 'http://gitlab.example.com:8929'
+      gitlab_rails['gitlab_shell_ssh_port'] = 2224
+  ports:
+    - '8929:8929'
+    - '2224:22'
+  volumes:
+    - '/srv/gitlab/config:/etc/gitlab'
+    - '/srv/gitlab/logs:/var/log/gitlab'
+    - '/srv/gitlab/data:/var/opt/gitlab'
+
+这与使用相同--publish 8929:8929 --publish 2224:22。
+
+使用Docker compose更新GitLab
+如果您使用docker-compose安装了GitLab，则只需运行docker-compose pull并docker-compose up -d下载新版本并升级GitLab实例即可。
+
+在Docker群中部署GitLab
+使用Docker swarm，您可以轻松地在群集群集中配置和部署基于Docker的GitLab安装。
+
+在swarm模式下，您可以利用Docker机密 和Docker配置来高效，安全地部署GitLab实例。秘密可用于安全地传递初始root密码，而不会将其作为环境变量公开。配置可以帮助您保持GitLab图像尽可能通用。
+
+这是一个使用秘密和配置将GitLab与四个运行器一起部署为堆栈的示例：
+
+设置Docker群
+创建一个docker-compose.yml文件：
+
+ version: "3.6"
+ services:
+   gitlab:
+     image: gitlab/gitlab-ce:latest
+     ports:
+       - "22:22"
+       - "80:80"
+       - "443:443"
+     volumes:
+       - /srv/gitlab/data:/var/opt/gitlab
+       - /srv/gitlab/logs:/var/log/gitlab
+       - /srv/gitlab/config:/etc/gitlab
+     environment:
+       GITLAB_OMNIBUS_CONFIG: "from_file('/omnibus_config.rb')"
+     configs:
+       - source: gitlab
+         target: /omnibus_config.rb
+     secrets:
+       - gitlab_root_password
+   gitlab-runner:
+     image: gitlab/gitlab-runner:alpine
+     deploy:
+       mode: replicated
+       replicas: 4
+ configs:
+   gitlab:
+     file: ./gitlab.rb
+ secrets:
+   gitlab_root_password:
+     file: ./root_password.txt
+
+出于简化的原因，network省略了配置。更多信息可以在官方撰写文件参考中找到。
+
+创建一个gitlab.rb文件：
+
+ external_url 'https://my.domain.com/'
+ gitlab_rails['initial_root_password'] = File.read('/run/secrets/gitlab_root_password')
+
+创建一个root_password.txt文件：
+
+ MySuperSecretAndSecurePass0rd!
+
+确保您docker-compose.yml与运行在同一目录中并运行：
+
+ docker stack deploy --compose-file docker-compose.yml mystack
+
+将GitLab安装到群集中
+GitLab Docker镜像也可以部署到各种容器调度平台。
+
+Kubernetes使用GitLab Helm Charts。
+使用DC / OS包的 Mesosphere DC / OS 。
+Docker Cloud使用docker-compose配置。
+故障排除
+500内部错误
+更新Docker镜像时，您可能会遇到一个问题，其中所有路径都显示臭名昭着的500页。如果发生这种情况，请尝试运行 sudo docker restart gitlab以重新启动容器并解决问题。
+
+许可问题
+从旧的GitLab Docker映像更新时，您可能会遇到权限问题。这是因为先前图像中的用户未正确保存。有修复所有文件权限的脚本。
+
+要修复容器，只需执行update-permissions并重新启动容器：
+
+sudo docker exec gitlab update-permissions
+sudo docker restart gitlab
+
+Windows / Mac：在资源ruby_block上执行操作时出错[目录资源：/ data / GitLab]
+在Windows或Mac上使用Docker Toolbox和VirtualBox并使用Docker卷时会发生此错误。/ c / Users卷作为VirtualBox共享文件夹安装，不支持所有POSIX文件系统功能。如果没有重新挂载，则无法更改目录所有权和权限，并且GitLab失败。
+
+我们的建议是切换到您的平台使用本机Docker安装，而不是使用Docker Toolbox。
+
+如果您无法使用本机Docker安装（Windows 10 Home Edition或Windows <10），那么另一种解决方案是为Docker Toolbox的boot2docker设置NFS挂载而不是VirtualBox共享。
+
+Linux ACL问题
+如果您在docker主机上使用文件ACL，则docker1组需要对卷进行完全访问才能使GitLab正常工作。
+
+$ getfacl /srv/gitlab
+# file: /srv/gitlab
+# owner: XXXX
+# group: XXXX
+user::rwx
+group::rwx
+group:docker:rwx
+mask::rwx
+default:user::rwx
+default:group::rwx
+default:group:docker:rwx
+default:mask::rwx
+default:other::r-x
+
+如果这些不正确，请将它们设置为：
+
+$ sudo setfacl -mR default:group:docker:rwx /srv/gitlab
+
+
+
+
+
+
+
+
+GitLab Docker图像
+GitLab CE和EE都在Docker Hub中：
+
+GitLab CE Docker镜像
+GitLab EE Docker镜像
+GitLab Docker镜像是GitLab的单片图像，在单个容器上运行所有必要的服务。
+
+在以下示例中，我们使用GitLab CE的图像。要使用GitLab EE而不是GitLab CE，请将图像名称替换为gitlab/gitlab-ee:latest。
+
+如果要使用最新的RC映像，请分别使用gitlab/gitlab-ce:rc或 gitlab/gitlab-ee:rc用于GitLab CE和GitLab EE。
+
+GitLab Docker镜像可以多种方式运行：
+
+在Docker Engine中运行映像
+将GitLab安装到群集中
+使用docker-compose安装GitLab
+先决条件
+需要Docker安装，请参阅官方安装文档。
+
+注意：建议 使用本机Docker安装而不是Docker Toolbox以使用持久卷
+警告： 我们不正式支持在Docker for Windows上运行。卷权限存在已知问题，可能存在其他未知问题。如果您尝试在Docker for Windows上运行，请参阅我们获取帮助页面以获取社区资源（IRC，论坛等）的链接，以寻求其他用户的帮助。
+运行图像
+运行图像：
+
+sudo docker run --detach \
+  --hostname gitlab.example.com \
+  --publish 443:443 --publish 80:80 --publish 22:22 \
+  --name gitlab \
+  --restart always \
+  --volume /srv/gitlab/config:/etc/gitlab \
+  --volume /srv/gitlab/logs:/var/log/gitlab \
+  --volume /srv/gitlab/data:/var/opt/gitlab \
+  gitlab/gitlab-ce:latest
+
+这将下载并启动GitLab CE容器并发布访问SSH，HTTP和HTTPS所需的端口。所有GitLab数据都将存储为子目录 /srv/gitlab/。restart系统重启后，容器将自动运行。
+
+您现在可以按照启动容器后的说明登录Web界面 。
+
+如果你在SELinux上，那么运行它：
+
+sudo docker run --detach \
+  --hostname gitlab.example.com \
+  --publish 443:443 --publish 80:80 --publish 22:22 \
+  --name gitlab \
+  --restart always \
+  --volume /srv/gitlab/config:/etc/gitlab:Z \
+  --volume /srv/gitlab/logs:/var/log/gitlab:Z \
+  --volume /srv/gitlab/data:/var/opt/gitlab:Z \
+  gitlab/gitlab-ce:latest
+
+这将确保Docker进程具有足够的权限来在已装入的卷中创建配置文件。
+
+如果您正在使用Kerberos集成 ，那么您还需要发布您的Kerberos端口（例如--publish 8443:8443）。如果不这样做，将阻止通过Kerberos进行Git操作。
+
+数据存储在哪里？
+GitLab容器使用主机安装的卷来存储持久数据：
+
+当地的位置	集装箱位置	用法
+/srv/gitlab/data	/var/opt/gitlab	用于存储应用数据
+/srv/gitlab/logs	/var/log/gitlab	用于存储日志
+/srv/gitlab/config	/etc/gitlab	用于存储GitLab配置文件
+您可以微调这些目录以满足您的要求。
+
+配置GitLab
+此容器使用官方的Omnibus GitLab软件包，因此所有配置都在唯一的配置文件中完成/etc/gitlab/gitlab.rb。
+
+要访问GitLab的配置文件，您可以在正在运行的容器的上下文中启动shell会话。这将允许您浏览所有目录并使用您喜欢的文本编辑器：
+
+sudo docker exec -it gitlab /bin/bash
+
+您也可以编辑/etc/gitlab/gitlab.rb：
+
+sudo docker exec -it gitlab editor /etc/gitlab/gitlab.rb
+
+打开后，请/etc/gitlab/gitlab.rb确保将指针设置external_url为有效的URL。
+
+要从GitLab接收电子邮件，您必须配置 SMTP设置，因为GitLab Docker映像没有安装SMTP服务器。
+
+您可能还对启用HTTPS感兴趣。
+
+完成所需的所有更改后，需要重新启动容器才能重新配置GitLab：
+
+sudo docker restart gitlab
+
+注意： GitLab将在容器启动时重新配置。
+有关配置GitLab的更多选项，请查看 Omnibus GitLab文档。
+
+预配置Docker容器
+您可以通过将环境变量添加GITLAB_OMNIBUS_CONFIG到docker run命令来预配置GitLab Docker映像。此变量可以包含任何gitlab.rb设置，并在加载容器gitlab.rb文件之前进行评估。这样，您可以轻松配置GitLab的外部URL，从Omnibus GitLab模板进行任何数据库配置或任何其他选项 。
+
+注意：包含的设置GITLAB_OMNIBUS_CONFIG不会写入gitlab.rb配置文件，而是在加载时进行评估。
+
+这是一个设置外部URL并在启动容器时启用LFS的示例：
+
+sudo docker run --detach \
+  --hostname gitlab.example.com \
+  --env GITLAB_OMNIBUS_CONFIG="external_url 'http://my.domain.com/'; gitlab_rails['lfs_enabled'] = true;" \
+  --publish 443:443 --publish 80:80 --publish 22:22 \
+  --name gitlab \
+  --restart always \
+  --volume /srv/gitlab/config:/etc/gitlab \
+  --volume /srv/gitlab/logs:/var/log/gitlab \
+  --volume /srv/gitlab/data:/var/opt/gitlab \
+  gitlab/gitlab-ce:latest
+
+请注意，每次执行docker run命令时，都需要提供该GITLAB_OMNIBUS_CONFIG选项。的内容GITLAB_OMNIBUS_CONFIG是 不保留后续运行之间。
+
+启动容器后
+启动容器后，如果使用boot2docker，则可以访问http：// localhost /或 http://192.168.59.103。Docker容器开始响应查询可能需要一段时间。
+
+注意： 初始化过程可能需要很长时间。您可以使用该命令跟踪此过程sudo docker logs -f gitlab
+您第一次访问GitLab时，系统会要求您设置管理员密码。更改后，您可以使用root您设置的用户名和密码登录。
+
+将GitLab升级到更新版本
+要将GitLab升级到新版本，您必须：
+
+停止正在运行的容器：
+
+ sudo docker stop gitlab
+
+删除现有容器：
+
+ sudo docker rm gitlab
+
+拉新图片：
+
+ sudo docker pull gitlab/gitlab-ce:latest
+
+使用先前指定的选项再次创建容器：
+
+ sudo docker run --detach \
+ --hostname gitlab.example.com \
+ --publish 443:443 --publish 80:80 --publish 22:22 \
+ --name gitlab \
+ --restart always \
+ --volume /srv/gitlab/config:/etc/gitlab \
+ --volume /srv/gitlab/logs:/var/log/gitlab \
+ --volume /srv/gitlab/data:/var/opt/gitlab \
+ gitlab/gitlab-ce:latest
+
+在第一次运行时，GitLab将重新配置和更新自己。
+
+使用标记版本的GitLab
+我们提供GitLab Docker镜像的标记版本。
+
+要查看所有可用标签，请检查：
+
+GitLab-CE标签和
+GitLab-EE标签
+例如，要使用特定的标记版本，请替换gitlab/gitlab-ce:latest为要运行的GitLab版本gitlab/gitlab-ce:8.4.3。
+
+在公共IP地址上运行GitLab CE
+您可以使Docker使用您的IP地址，并通过修改--publish标志将所有流量转发到GitLab CE容器。
+
+在IP 198.51.100.1上公开GitLab CE：
+
+sudo docker run --detach \
+  --hostname gitlab.example.com \
+  --publish 198.51.100.1:443:443 \
+  --publish 198.51.100.1:80:80 \
+  --publish 198.51.100.1:22:22 \
+  --name gitlab \
+  --restart always \
+  --volume /srv/gitlab/config:/etc/gitlab \
+  --volume /srv/gitlab/logs:/var/log/gitlab \
+  --volume /srv/gitlab/data:/var/opt/gitlab \
+  gitlab/gitlab-ce:latest
+
+然后，您可以在http://198.51.100.1/和访问您的GitLab实例https://198.51.100.1/。
+
+在不同的端口上公开GitLab
+GitLab将占用 容器内的一些端口。
+
+如果要使用与80（HTTP）或443（HTTPS）不同的主机端口，则需要向命令添加单独的--publish指令docker run。
+
+请勿使用上述任何端口来替换默认值80或 容器443 内部，否则会出现冲突。
+
+例如，要在端口上公开Web界面，在端口上公开8929SSH服务2289，请使用以下docker run命令：
+
+sudo docker run --detach \
+  --hostname gitlab.example.com \
+  --publish 8929:80 --publish 2289:22 \
+  --name gitlab \
+  --restart always \
+  --volume /srv/gitlab/config:/etc/gitlab \
+  --volume /srv/gitlab/logs:/var/log/gitlab \
+  --volume /srv/gitlab/data:/var/opt/gitlab \
+  gitlab/gitlab-ce:latest
+
+注意： 发布端口的格式为hostPort:containerPort。有关暴露传入端口的详细信息，请参阅Docker的文档。
+然后，您需要适当配置gitlab.rb：
+
+设置external_url：
+
+ # For HTTP
+ external_url "http://gitlab.example.com:8929"
+
+ or
+
+ # For HTTPS (notice the https)
+ external_url "https://gitlab.example.com:8929"
+
+有关更多信息，请参阅NGINX文档。
+
+设置gitlab_shell_ssh_port：
+
+ gitlab_rails['gitlab_shell_ssh_port'] = 2289
+
+按照上面的示例，您将能够通过Web浏览器访问GitLab，<hostIP>:8929并在端口下使用SSH进行推送2289。
+
+甲docker-compose.yml使用不同的端口的例子可以在找到 搬运工-撰写部分。
+
+诊断潜在问题
+读取容器日志：
+
+sudo docker logs gitlab
+
+输入运行容器：
+
+sudo docker exec -it gitlab /bin/bash
+
+在容器内，您可以像管理Omnibus安装一样管理GitLab容器
+
+使用docker-compose安装GitLab
+使用Docker撰写，您可以轻松配置，安装和升级基于Docker的GitLab安装。
+
+安装 Docker Compose
+创建docker-compose.yml文件（或下载示例）：
+
+ web:
+   image: 'gitlab/gitlab-ce:latest'
+   restart: always
+   hostname: 'gitlab.example.com'
+   environment:
+     GITLAB_OMNIBUS_CONFIG: |
+       external_url 'https://gitlab.example.com'
+       # Add any other gitlab.rb configuration here, each on its own line
+   ports:
+     - '80:80'
+     - '443:443'
+     - '22:22'
+   volumes:
+     - '/srv/gitlab/config:/etc/gitlab'
+     - '/srv/gitlab/logs:/var/log/gitlab'
+     - '/srv/gitlab/data:/var/opt/gitlab'
+
+确保您docker-compose.yml与运行docker-compose up -dGitLab 在同一目录中并运行
+阅读“预配置Docker容器”以查看GITLAB_OMNIBUS_CONFIG变量的工作原理。
+
+下面是另一个docker-compose.yml在自定义HTTP和SSH端口上运行GitLab的示例。注意GITLAB_OMNIBUS_CONFIG变量如何与该ports部分匹配 ：
+
+web:
+  image: 'gitlab/gitlab-ce:latest'
+  restart: always
+  hostname: 'gitlab.example.com'
+  environment:
+    GITLAB_OMNIBUS_CONFIG: |
+      external_url 'http://gitlab.example.com:8929'
+      gitlab_rails['gitlab_shell_ssh_port'] = 2224
+  ports:
+    - '8929:8929'
+    - '2224:22'
+  volumes:
+    - '/srv/gitlab/config:/etc/gitlab'
+    - '/srv/gitlab/logs:/var/log/gitlab'
+    - '/srv/gitlab/data:/var/opt/gitlab'
+
+这与使用相同--publish 8929:8929 --publish 2224:22。
+
+使用Docker compose更新GitLab
+如果您使用docker-compose安装了GitLab，则只需运行docker-compose pull并docker-compose up -d下载新版本并升级GitLab实例即可。
+
+在Docker群中部署GitLab
+使用Docker swarm，您可以轻松地在群集群集中配置和部署基于Docker的GitLab安装。
+
+在swarm模式下，您可以利用Docker机密 和Docker配置来高效，安全地部署GitLab实例。秘密可用于安全地传递初始root密码，而不会将其作为环境变量公开。配置可以帮助您保持GitLab图像尽可能通用。
+
+这是一个使用秘密和配置将GitLab与四个运行器一起部署为堆栈的示例：
+
+设置Docker群
+创建一个docker-compose.yml文件：
+
+ version: "3.6"
+ services:
+   gitlab:
+     image: gitlab/gitlab-ce:latest
+     ports:
+       - "22:22"
+       - "80:80"
+       - "443:443"
+     volumes:
+       - /srv/gitlab/data:/var/opt/gitlab
+       - /srv/gitlab/logs:/var/log/gitlab
+       - /srv/gitlab/config:/etc/gitlab
+     environment:
+       GITLAB_OMNIBUS_CONFIG: "from_file('/omnibus_config.rb')"
+     configs:
+       - source: gitlab
+         target: /omnibus_config.rb
+     secrets:
+       - gitlab_root_password
+   gitlab-runner:
+     image: gitlab/gitlab-runner:alpine
+     deploy:
+       mode: replicated
+       replicas: 4
+ configs:
+   gitlab:
+     file: ./gitlab.rb
+ secrets:
+   gitlab_root_password:
+     file: ./root_password.txt
+
+出于简化的原因，network省略了配置。更多信息可以在官方撰写文件参考中找到。
+
+创建一个gitlab.rb文件：
+
+ external_url 'https://my.domain.com/'
+ gitlab_rails['initial_root_password'] = File.read('/run/secrets/gitlab_root_password')
+
+创建一个root_password.txt文件：
+
+ MySuperSecretAndSecurePass0rd!
+
+确保您docker-compose.yml与运行在同一目录中并运行：
+
+ docker stack deploy --compose-file docker-compose.yml mystack
+
+将GitLab安装到群集中
+GitLab Docker镜像也可以部署到各种容器调度平台。
+
+Kubernetes使用GitLab Helm Charts。
+使用DC / OS包的 Mesosphere DC / OS 。
+Docker Cloud使用docker-compose配置。
+故障排除
+500内部错误
+更新Docker镜像时，您可能会遇到一个问题，其中所有路径都显示臭名昭着的500页。如果发生这种情况，请尝试运行 sudo docker restart gitlab以重新启动容器并解决问题。
+
+许可问题
+从旧的GitLab Docker映像更新时，您可能会遇到权限问题。这是因为先前图像中的用户未正确保存。有修复所有文件权限的脚本。
+
+要修复容器，只需执行update-permissions并重新启动容器：
+
+sudo docker exec gitlab update-permissions
+sudo docker restart gitlab
+
+Windows / Mac：在资源ruby_block上执行操作时出错[目录资源：/ data / GitLab]
+在Windows或Mac上使用Docker Toolbox和VirtualBox并使用Docker卷时会发生此错误。/ c / Users卷作为VirtualBox共享文件夹安装，不支持所有POSIX文件系统功能。如果没有重新挂载，则无法更改目录所有权和权限，并且GitLab失败。
+
+我们的建议是切换到您的平台使用本机Docker安装，而不是使用Docker Toolbox。
+
+如果您无法使用本机Docker安装（Windows 10 Home Edition或Windows <10），那么另一种解决方案是为Docker Toolbox的boot2docker设置NFS挂载而不是VirtualBox共享。
+
+Linux ACL问题
+如果您在docker主机上使用文件ACL，则docker1组需要对卷进行完全访问才能使GitLab正常工作。
+
+$ getfacl /srv/gitlab
+# file: /srv/gitlab
+# owner: XXXX
+# group: XXXX
+user::rwx
+group::rwx
+group:docker:rwx
+mask::rwx
+default:user::rwx
+default:group::rwx
+default:group:docker:rwx
+default:mask::rwx
+default:other::r-x
+
+如果这些不正确，请将它们设置为：
+
+$ sudo setfacl -mR default:group:docker:rwx /srv/gitlab
+
+
+
+
+
+特殊情况
+  还有一种情况就是，上面的都做了还不起作用，有可能是没有开启 IP Forward 功能。
+
+查看 IP Forward 功能
+[root@iZ28o12qifoZ ~]# sysctl -q net.ipv4.ip_forward
+# 0：未开启，1：已开启
+net.ipv4.ip_forward = 0
+ 
+开启
+[root@iZ28o12qifoZ ~]# sysctl -w net.ipv4.ip_forward=1
+net.ipv4.ip_forward = 1
+[root@iZ28o12qifoZ ~]# sysctl -q net.ipv4.ip_forward
+net.ipv4.ip_forward = 1

@@ -1,0 +1,90 @@
+创建网络
+[root@DBserver-stg shell]# cat network-docker.sh 
+#!/bin/bash
+docker network create fordb
+
+
+
+创建mysql
+
+[root@DBserver-stg shell]# cat mysql.sh 
+#!/bin/bash
+docker run --name mysql --net=fordb  --restart=always  -p 3306:3306 -v /var/lib/mysql:/var/lib/mysql -e MYSQL_ROOT_PASSWORD=password -d mysql:5.7.25  --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+
+
+
+进入mysql数据库创建sonar数据库
+
+mysql> CREATE DATABASE sonar CHARACTER SET utf8 COLLATE utf8_general_ci;
+
+mysql> GRANT ALL ON sonar.* TO 'sonar'@'localhost' IDENTIFIED BY 'sonar@pw';
+
+mysql> GRANT ALL ON sonar.* TO 'sonar'@'%' IDENTIFIED BY 'sonar@pw';
+
+mysql> FLUSH PRIVILEGES;
+
+
+
+
+
+/opt/sonarqube/conf目录下的两个配置文件内容如下
+
+[root@DBserver-stg conf]# cat sonar.properties | grep -v "#"
+
+sonar.jdbc.url=jdbc:mysql://mysql:3306/sonar?useUnicode=true&characterEncoding=utf8&rewriteBatchedStatements=true&useConfigs=maxPerformance&useSSL=false
+
+
+
+
+
+[root@DBserver-stg conf]# cat wrapper.conf  | grep -v "#"
+wrapper.java.command=java
+wrapper.java.additional.1=-Dsonar.wrapped=true
+wrapper.java.additional.2=-Djava.awt.headless=true
+wrapper.java.mainclass=org.tanukisoftware.wrapper.WrapperSimpleApp
+wrapper.java.classpath.1=../../lib/jsw/*.jar
+wrapper.java.classpath.2=../../lib/common/*.jar
+wrapper.java.classpath.3=../../lib/*.jar
+wrapper.java.library.path.1=./lib
+wrapper.app.parameter.1=org.sonar.application.App
+wrapper.java.initmemory=8
+wrapper.java.maxmemory=32
+wrapper.console.format=PM
+wrapper.console.loglevel=INFO
+wrapper.logfile=../../logs/sonar.log
+wrapper.logfile.format=M
+wrapper.logfile.loglevel=INFO
+wrapper.syslog.loglevel=NONE
+wrapper.console.title=SonarQube
+wrapper.single_invocation=true
+wrapper.ntservice.name=SonarQube
+wrapper.ntservice.displayname=SonarQube
+wrapper.ntservice.description=SonarQube
+wrapper.ntservice.dependency.1=
+wrapper.ntservice.starttype=AUTO_START
+wrapper.ntservice.interactive=false
+wrapper.disable_restarts=TRUE
+wrapper.ping.timeout=0
+wrapper.shutdown.timeout=300
+wrapper.jvm_exit.timeout=300
+
+
+
+
+
+
+创建Sonarqube
+
+[root@DBserver-stg shell]# cat sonarqube.sh 
+#!/bin/bash
+docker run -d --name sq \
+    -p 9000:9000 \
+    --net=fordb \
+    -e sonar.jdbc.username=sonar \
+    -e sonar.jdbc.password=sonar \
+    -v /opt/sonarqube/conf:/opt/sonarqube/conf \
+    sonarqube
+
+
+
+访问：宿主机  ip:9000

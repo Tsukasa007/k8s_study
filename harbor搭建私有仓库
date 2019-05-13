@@ -1,0 +1,315 @@
+
+yum -y install wget lrzsz
+
+下载
+wget https://storage.googleapis.com/harbor-releases/harbor-offline-installer-v1.5.2.tgz
+或者到本地使用rz上传上来，软件名称是harbor-offline-installer-v1.5.2.tgz
+
+
+其他版本下载如下
+https://github.com/vmware/harbor/releases
+
+
+sed -i 's/SELINUX=enforcing/SELINUX=disabled/g' /etc/selinux/config
+setenforce 0
+service iptables save
+systemctl stop firewalld
+systemctl mask firewalld
+yum install iptables-services -y
+systemctl enable iptables
+systemctl start iptables
+iptables -F
+/usr/libexec/iptables/iptables.init save
+
+
+
+
+cat <<EOF > /etc/yum.repos.d/kubernetes.repo
+[kubernetes]
+name=Kubernetes
+baseurl=http://mirrors.aliyun.com/kubernetes/yum/repos/kubernetes-el7-x86_64
+enabled=1
+gpgcheck=0
+repo_gpgcheck=0
+gpgkey=http://mirrors.aliyun.com/kubernetes/yum/doc/yum-key.gpg
+       http://mirrors.aliyun.com/kubernetes/yum/doc/rpm-package-key.gpg
+EOF
+
+yum -y install docker-compose
+
+tar xvf harbor-offline-installer-v1.5.2.tgz
+cd harbor
+
+vim harbor.cfg
+hostname = 192.168.224.142
+
+./install.sh
+如果报错，则重启docker
+service docker restart
+
+
+登陆
+admin/Harbor12345
+
+项目-新建项目-填写项目名（如：test，默认是私有）
+
+用户管理-创建用户（如：hx6007）
+
+项目-项目名称（如：test）
+
+项目-成员-新建成员（如：lisi）
+
+
+cat >> /etc/docker/daemon.json << eof
+{
+  "registry-mirrors": ["https://hub-mirror.c.163.com","https://registry.docker-cn.com"],
+  "insecure-registries": ["192.168.224.142"]
+}
+eof
+
+sed -i 'n;12aEnvironmentFile=-/etc/docker/daemon.json' /lib/systemd/system/docker.service
+
+
+systemctl daemon-reload
+service docker restart
+
+docker pull busybox
+docker tag busybox 192.168.224.142/test/busybox
+
+docker login 192.168.224.142 -u admin
+Password:Harbor12345
+Login Succeeded
+
+docker push 192.168.224.142/test/busybox
+
+
+相关视频教程：
+
+内容信任
+https://v.qq.com/x/page/n0553fzzrnf.html
+
+基于角色的访问控制
+https://v.qq.com/x/page/l0553yw19ek.html
+
+漏洞扫描
+https://v.qq.com/x/page/s0553k9692d.html
+
+图像复制
+https://v.qq.com/x/page/a0553wc7fs9.html
+
+VMworld 2017（youtube）
+https://www.youtube.com/watch?v=tI5xMe24fJ4
+
+
+
+==========================================================================
+
+                               安装方法二（带证书）
+
+==========================================================================
+
+参考文章：
+https://github.com/goharbor/harbor/blob/master/docs/installation_guide.md
+
+----------doeker 安装.启动开始----------
+
+sudo yum install -y yum-utils device-mapper-persistent-data lvm2
+sudo yum-config-manager --add-repo http://mirrors.aliyun.com/docker-ce/linux/centos/docker-ce.repo
+sudo yum install docker-ce -y
+systemctl enable  docker 
+systemctl daemon-reload
+sudo service docker start
+service docker status
+ 
+
+
+
+----------在Linux系统上安装Compose----------
+
+
+
+cat <<EOF > /etc/yum.repos.d/kubernetes.repo
+[kubernetes]
+name=Kubernetes
+baseurl=http://mirrors.aliyun.com/kubernetes/yum/repos/kubernetes-el7-x86_64
+enabled=1
+gpgcheck=0
+repo_gpgcheck=0
+gpgkey=http://mirrors.aliyun.com/kubernetes/yum/doc/yum-key.gpg
+       http://mirrors.aliyun.com/kubernetes/yum/doc/rpm-package-key.gpg
+EOF
+
+yum -y install docker-compose
+
+
+
+----------版本列表----------
+
+https://github.com/goharbor/harbor/releases
+
+
+----------下载二进制文件----------
+
+cd  /usr/local/src
+
+wget https://storage.googleapis.com/harbor-releases/harbor-offline-installer-v1.6.1.tgz
+
+
+tar xvf  harbor-offline-installer-v1.6.1.tgz
+ 
+
+cd harbor
+
+
+
+
+----------修改harbor配置----------
+
+
+sed -i 's/hostname = reg.mydomain.com/hostname = reg.xingmeng.tb/g' harbor.cfg
+
+sed -i 's@ui_url_protocol = http@ui_url_protocol = https@g' harbor.cfg
+
+sed -i 's@ssl_cert = /data/cert/server.crt@ssl_cert = /data/cert/reg.xingmeng.tb.crt@' harbor.cfg
+
+sed -i 's@ssl_cert_key = /data/cert/server.key@ssl_cert_key = /data/cert/reg.xingmeng.tb.key@' harbor.cfg
+
+sed -i 's@project_creation_restriction = everyone@project_creation_restriction = adminonly@' harbor.cfg
+
+
+
+----------写入主机名----------
+
+ hostname reg.xingmeng.tb
+ echo reg.xingmeng.tb > /etc/hostname
+
+
+
+----------创建自签证书----------
+
+警告：
+
+Common Name (eg, your name or your server's hostname) []:reg.xingmeng.tb
+
+在下面的执行中到了上面那一步务必填写reg.xingmeng.tb，否则服务器无法登陆harbor
+
+
+
+mkdir -p /data/cert && cd /data/cert
+
+openssl req     -newkey rsa:4096 -nodes -sha256 -keyout ca.key     -x509 -days 365 -out ca.crt
+
+openssl req     -newkey rsa:4096 -nodes -sha256 -keyout reg.xingmeng.tb.key     -out reg.xingmeng.tb.csr
+
+
+openssl x509 -req -days 365 -in reg.xingmeng.tb.csr -CA ca.crt -CAkey ca.key -CAcreateserial -out reg.xingmeng.tb.crt
+
+
+ mkdir -pv /etc/docker/certs.d/reg.xingmeng.tb
+
+cp ca.crt /etc/docker/certs.d/reg.xingmeng.tb
+
+
+
+cat << EOF >> /etc/hosts
+192.168.224.190 reg.xingmeng.tb
+EOF
+
+
+
+同时在C:\Windows\System32\drivers\etc\HOSTS 中做好dns记录
+
+192.168.224.190 reg.xingmeng.tb
+
+
+
+
+
+
+
+----------为Harbor生成配置文件----------
+
+  ./prepare
+
+----------安装----------
+
+./install.sh
+
+
+
+----------停止与启动命令----------
+
+####需要进入到目录执行，例如/usr/local/src/harbor
+
+cd /usr/local/src/harbor
+
+如果Harbor已在运行，请停止并删除现有实例。您的图像数据保留在文件系统中
+ 
+  docker-compose down  
+
+最后，重启harbor：
+
+  docker-compose up -d
+
+
+
+
+
+访问(谷歌浏览器估计无法访问，换火狐浏览器访问)
+
+https://reg.xingmeng.tb
+
+USERNAME: admin
+
+PASSWORD: Harbor12345
+
+
+
+
+主机登陆
+
+docker login reg.xingmeng.tb
+
+USERNAME: admin
+
+PASSWORD: Harbor12345
+
+登陆不了的话注意清空iptables，然后重启docker
+iptables -F
+systemctl daemon-reload && systemctl restart docker && systemctl status docker
+
+
+
+
+----------测试----------
+
+登陆https://reg.xingmeng.tb
+
+admin/Harbor12345
+
+项目-新建项目-填写项目名（如：test，默认是私有）
+
+用户管理-创建用户（如：hx6007）
+
+项目-项目名称（如：test）
+
+项目-成员-新建成员（如：lisi）
+
+
+docker pull busybox
+docker tag busybox reg.xingmeng.tb/test/busybox
+
+docker login reg.xingmeng.tb -u admin
+Password:Harbor12345
+Login Succeeded
+
+docker push reg.xingmeng.tb/test/busybox
+
+删除镜像然后下载
+
+docker pull reg.xingmeng.tb/test/busybox
+
+
+
+
+

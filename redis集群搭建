@@ -1,0 +1,83 @@
+https://blog.csdn.net/haerxiong/article/details/85064502
+
+
+目标
+在linux主机是，使用Docker搭建redis cluster集群（含主从），使用本地java访问redis集群
+
+本文不同
+1、使用redis5.0的redis-cli --cluster命令替换老版本redis集群创建命令redis-trib.rb，因此过程中不需要ruby支持。
+2、百度教程中docker搭建的集群大都可以在宿主机器中访问，但本地java调用时，往往因为ip问题无法访问。我使用了docker的host网络方式替换了一般新建一个名
+为redis-net的bridge模式，使得本地java得意访问。
+3、使用了官方redis镜像，没有编写Dockerfile
+
+操作环境
+我手头的是一台Centos7 linux主机，使用XShell远程连接，已经安装docker以及redis5.0
+
+redis cluster须知
+写给刚接触的人，有个大概了解。redis-server可以启动一个单机服务，修改redis.conf后可以以集群方式启动。
+
+首先，我们需要先启动6个redis-server（3个主节点，横向扩展redis的数据存储量，有一个节点挂掉整体宕机；因此，需要3个从节点，每个从节点为一个主节点的备
+胎。）；
+
+其次，通过redis-cli --cluster命令连接这些节点，创建出一个集群服务。两步完毕。
+
+步骤一：启动6个redis-server
+
+1、docker pull redis获取redis镜像
+2、准备6份redis.conf，此处跟大部分百度教程相似。
+
+一个模板文件redis-cluster.tmpl方便脚本生成多份配置：
+
+port ${PORT}
+cluster-enabled yes
+cluster-config-file nodes.conf
+cluster-node-timeout 5000
+cluster-announce-ip 192.168.1.200
+cluster-announce-port ${PORT}
+cluster-announce-bus-port 1${PORT}
+appendonly yes
+protected-mode no
+ 
+注：ip部分要换成linux主机ip，我这是192.168.1.200，方便后期外网访问，原文一般是172.18.0.1的虚拟地址
+
+脚本生成6份配置：
+
+for port in `seq 7000 7005`; do \
+  mkdir -p ./${port}/conf \
+  && PORT=${port} envsubst < ./redis-cluster.tmpl > ./${port}/conf/redis.conf \
+  && mkdir -p ./${port}/data; \
+done
+ 
+3、脚本启动6个容器
+
+for port in `seq 7000 7005`; do \
+  docker run -d -ti \
+  --privileged=true -v /home/redis-cluster/${port}/conf/redis.conf:/usr/local/etc/redis/redis.conf \
+  --privileged=true -v /home/redis-cluster/${port}/data:/data \
+  --restart always --name redis-${port} --net host \
+  --sysctl net.core.somaxconn=1024 redis redis-server /usr/local/etc/redis/redis.conf; \
+done
+ 
+此处注意，--net host这种网络模式可以让容器ip、端口共享宿主机的网络，其他部分还是独立的，因此-p 7000:7000等端口映射参数可以不写了。
+
+注意：如果容器启动失败，可以使用docker logs命令查看日志，有时候是配置文件错误导致的。
+
+步骤二：redis-cli创建集群
+
+redis5.0中redis-cli --cluster已经替换了redis-trib.rb命令，如果还使用此命令会提示你的。
+具体命令如下：
+redis-cli --cluster create 192.168.1.200:7000 192.168.1.200:7001 192.168.1.200:7002 192.168.1.200:7003 192.168.1.200:7004 192.168.1.200:7005 --cluster-replicas 1
+192.168.1.200替换成你自己的linux主机ip
+–cluster-replicas 1意思是为主节点创建1份从节点
+根据提示，输入yes即可创建成功。
+
+大功告成，以spring-boot为例，配置为：
+spring.redis.cluster.nodes=192.168.1.200:7000,192.168.1.200:7001,192.168.1.200:7002,192.168.1.200:7003,192.168.1.200:7004,192.168.1.200:7005
+spring.redis.host、spring.redis.port可以不要了
+ 
+
+
+删除集群
+
+docker ps | grep redis | awk '{print $1}' | xargs docker rm -f
+

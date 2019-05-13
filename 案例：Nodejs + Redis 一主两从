@@ -1,0 +1,128 @@
+===========================================
+         Nodejs + Redis 一主两从
+===========================================
+
+构建node镜像
+
+FROM ubuntu:16.04
+MAINTAINER James Turnbull <james@example.com>
+ENV REFRESHED_AT 2016-06-01
+
+RUN apt-get -qq update --fix-missing
+RUN apt-get -qq install nodejs npm
+RUN ln -s /usr/bin/nodejs /usr/bin/node
+RUN mkdir -p /var/log/nodeapp
+
+ADD nodeapp /opt/nodeapp
+
+WORKDIR /opt/nodeapp
+RUN npm install
+
+VOLUME [ "/var/log/nodeapp" ]
+
+EXPOSE 3000
+
+ENTRYPOINT [ "nodejs", "server.js" ]
+
+
+
+docker build -t jamtur01/nodejs .
+
+===========================================
+redis_base  基础镜像
+
+
+FROM ubuntu:16.04
+MAINTAINER James Turnbull <james@example.com>
+ENV REFRESHED_AT 2016-06-01
+
+RUN apt-get -qq update
+RUN apt-get install -qq software-properties-common python-software-properties
+RUN add-apt-repository ppa:chris-lea/redis-server
+RUN apt-get -qq update
+RUN apt-get -qq install redis-server redis-tools
+
+VOLUME [ "/var/lib/redis", "/var/log/redis" ]
+
+EXPOSE 6379
+
+CMD []
+
+构建：
+docker build -t jamtur01/redis .
+
+===========================================
+
+redis_primary  主镜像
+
+FROM jamtur01/redis
+MAINTAINER James Turnbull <james@example.com>
+ENV REFRESHED_AT 2016-06-01
+
+ENTRYPOINT [ "redis-server", "--protected-mode no", "--logfile /var/log/redis/redis-server.log" ]
+
+
+构建：docker build -t jamtur01/redis_primary .
+
+===========================================
+
+redis_replica 副镜像
+
+FROM jamtur01/redis
+MAINTAINER James Turnbull <james@example.com>
+ENV REFRESHED_AT 2016-06-01
+
+ENTRYPOINT [ "redis-server", "--protected-mode no", "--logfile /var/log/redis/redis-replica.log", "--slaveof redis-primary 6379" ]
+
+构建：docker build -t jamtur01/redis_replica .
+
+===========================================
+
+创建express网络
+
+docker network create express
+
+===========================================
+
+运行redis主容器
+docker run -d -h redis_primary --naet exepress --name redis_primary jamtur01/redis_primary
+
+*-h 设置容器主机名
+
+===========================================
+
+读取redis主日志
+
+docker run -it --rm --volumes-from redis_primary ubuntu cat /var/log/redis/redis-server.log
+
+===========================================
+
+运行第一个redis副本容器
+
+docker run -d -h redis_replica1 --name redis_replica1 --net express jamtur01/redis_replica
+
+===========================================
+
+读取redis 副本容器的日志
+
+docker run -it --rm --volumes-from redis_replica1 ubuntu cat /var/log/redis/redis-replica.log
+
+===========================================
+
+运行第二个redis副本容器
+
+docker run -d -h redis_replica2 --name redis_replica2 --net express jamtur01/redis_replica
+
+===========================================
+
+读取第二个redis 副本容器的日志
+
+docker run -it --rm --volumes-from redis_replica2 ubuntu cat /var/log/redis/redis-replica.log
+
+===========================================
+
+运行node.js容器
+
+docker run -d --name nodeapp -p 3000:3000 --net express jamtur01/nodejs
+
+===========================================

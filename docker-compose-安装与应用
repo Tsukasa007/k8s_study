@@ -1,0 +1,294 @@
+
+
+在Linux系统上安装Compose
+
+sudo curl -L "https://github.com/docker/compose/releases/download/1.22.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+
+sudo chmod +x /usr/local/bin/docker-compose
+
+
+查看版本
+docker-compose --version
+
+实例
+=====================================================
+
+FROM python:2.7
+MAINTAINER James Turnbull <james@example.com>
+ENV REFRESHED_AT 2016-08-01
+
+ADD . /composeapp
+
+WORKDIR /composeapp
+
+RUN pip install -r requirements.txt
+
+
+
+构建：
+docker build -t jamtur01/composeapp .
+
+=====================================================
+
+三大概念
+services：一个service代表一个container，这个container可以从dockerhub的image来创建，也可以从本地的Dockerfile build出来的images来创建。启动类似
+docker run,我们可以给其指定network和wolume，所以可以给service指定network和volume的引用。
+
+=====================================================
+
+cat docker-compose.yml
+web:
+  image: jamtur01/composeapp
+  command: python app.py
+  ports:
+   - "5000:5000"
+  volumes:
+   - .:/composeapp
+  links:
+   - redis
+redis:
+  image: redis
+
+效果如下：
+docker run -d -p 5000:5000 -v .:/composeapp --link redis:redis --name web jamtur01/composeapp python app.py
+
+=====================================================
+
+实例2：
+services:
+  db: 
+    image：postgres:9.4
+  volumes:
+    - "db-data:/var/lib/postgresql/data"
+  networks:
+    - back-tier
+
+等同于
+docker run -d --network back-tier db-data:/var/lib/postgresql/data postgres:9.4
+
+"db-data:/var/lib/postgresql/data"  =========>> docker volume create db-data
+
+  networks:
+    - back-tier =========>> 
+    
+同例
+networks:
+  front-tier:
+    driver: bridge
+  backer-tier:
+    driver: bridge
+
+=====================================================
+
+完整案例：
+docker-compose.yml
+
+
+version: '3'
+
+services:
+
+  wordpress:
+    image: wordpress
+    ports:
+      - 8080:80
+    environment:
+      WORDPRESS_DB_HOST: mysql
+      WORDPRESS_DB_PASSWORD: root
+    networks:
+      - my-bridge
+
+  mysql:
+    image: mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: wordpress
+    volumes:
+      - mysql-data:/var/lib/mysql
+    networks:
+      - my-bridge
+
+volumes:
+  mysql-data:
+
+networks:
+  my-bridge:
+    driver: bridge
+    
+    
+=====================================================
+  
+    
+    
+    
+第二个案例
+https://github.com/hx6007/docker-k8s-devops-master/tree/master/chapter6/labs/flask-redis
+
+
+
+docker-compose.yml
+
+version: "3"
+
+services:
+
+  redis:
+    image: redis
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - 8080:5000
+    environment:
+      REDIS_HOST: redis    
+
+=====================================================
+
+
+启动    
+docker-compose up -d
+
+指定文件启动
+docker-compose -f  docker-compose.yml up 
+
+=====================================================
+
+查看服务
+docker-compose ps
+
+查看日志
+docker-compose logs
+
+停止
+docker-compose stop
+
+停止但是不会删除镜像
+docker-compose down
+
+开启
+docker-compose start
+
+删除
+docker-compose rm
+
+后台运行,如果要看日志，就不加-d
+docker-compose up -d
+
+进入容器
+docker-compose exec mysql bash
+
+=====================================================
+6-4 水平扩展和负载均衡
+docker-compose up --scale web=3 -d
+
+** 因端口冲突会报错，要解决端口问题，把docker-compose的端口删除掉
+docker-compose up -d 先启动一个容器，再执行
+docker-compose up --scale web=3 -d
+
+扩展后如何做到负载均衡？
+https://github.com/hx6007/docker-k8s-devops-master/tree/master/chapter6/labs/lb-scale
+=====================================================
+
+Dockerfile
+
+FROM python:2.7
+LABEL maintaner="Peng Xiao xiaoquwl@gmail.com"
+COPY . /app
+WORKDIR /app
+RUN pip install flask redis
+EXPOSE 80
+CMD [ "python", "app.py" ]
+
+=====================================================
+app.py
+
+from flask import Flask
+from redis import Redis
+import os
+import socket
+
+app = Flask(__name__)
+redis = Redis(host=os.environ.get('REDIS_HOST', '127.0.0.1'), port=6379)
+
+
+@app.route('/')
+def hello():
+    redis.incr('hits')
+    return 'Hello Container World! I have been seen %s times and my hostname is %s.\n' % (redis.get('hits'),socket.gethostname())
+
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=80, debug=True)  ###原来是5000，现在改为80
+=====================================================
+ 
+docker-compose.yml
+
+version: "3"
+
+services:
+
+  redis:
+    image: redis
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      REDIS_HOST: redis
+
+####在原来的基础上增加此段，原来有暴露端口，现在删除掉
+  lb:
+    image: dockercloud/haproxy
+    links:
+      - web
+    ports:
+      - 8080:80
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock 
+
+=====================================================
+Down掉所有
+dockdr-compose down
+dockdr-compose up -d
+docker-compose ps 
+
+curl 127.0.0.1:8080
+
+docker-compose up --scale web=3 -d
+
+curl 127.0.0.1:8080 每次访问都会不一样
+
+轮询访问
+继续增加
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

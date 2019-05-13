@@ -1,0 +1,435 @@
+
+Dockerfile定义卷
+jekyll：
+VOLUME [ "/data", "/var/www/html" ]
+apache：
+VOLUME [ "/var/www/html" ]
+
+Dockerfile创建的这个VOLUME,会在本机同步被创建
+不会随着容器删除而删除
+
+docker run -v $PWD:/data/ --name james_blog jamtur01/jekyll
+没有-d，表示没有在后台运行
+
+docker run -d -P --volumes-from james_blog jamtur01/apache
+
+从定义卷的容器中共享卷
+docker run -d -P --volumes-from james_blog jamtur01/apache
+--volumes-from：把指定容器里的所有卷都加入新创建的容器里
+前提是容器必须存在
+**即使删除了使用卷的最后一个容器，卷中的数据也会持久保存。
+
+更新代码后，需要重启容器。
+docker  restart james_blog
+
+查看卷
+docker volume ls
+docker volume inspect 卷id
+
+删除卷
+docker volume rm 卷id
+
+备份卷
+docker run --rm --volumes-from james_blog -v $(pwd):/backup ubuntu tar cvf /backup/james_blog_bakup.tar /var/www/html
+
+Volume 太长了，起个别名
+docker run -d -v mysql:/var/lov/mysql --name mysql1 -e MYSQL_ALLOW_EMPTY_PASSWORD=true mysql
+
+docker volume ls 查看现有卷，发现VOLUME名变成自定义的mysql
+
+删掉mysql1容器，在用docker volume ls查看，发现mysql卷依然存在。
+
+数据持久化
+docker run -v /home/aaa:/root/aaa  ......
+和前一个方法不同，前一种方法是在Dockerfile中定义volume
+下面的方法是，本地目录和容器的目录绑定
+
+
+
+$ docker run --name some-mysql -v /my/own/datadir:/var/lib/mysql -e MYSQL_ROOT_PASSWORD=my-secret-pw -d mysql:tag
+
+
+实例：
+
+启动mysql容器
+docker run -d  --name mysql -v mysql-data:/var/lib/mysql -e MYSQL_ROOT_PASSWORD=root -e MYSQL_DATABASE=wordpress mysql
+
+启动workpress容器
+docker run -d -e WORDPRESS_DB_HOST=mysql:3306 --link mysql -p 8080:80 wordpress
+
+
+***apache容器是不需要更新的
+============================================================================
+jekyll Dockerfile
+
+FROM ubuntu:16.04
+MAINTAINER James Turnbull <james@example.com>
+ENV REFRESHED_AT 2016-06-01
+
+RUN apt-get -qq update
+RUN apt-get -qq install ruby ruby-dev build-essential nodejs
+RUN gem install --no-rdoc --no-ri jekyll -v 2.5.3
+
+VOLUME [ "/data", "/var/www/html" ]
+WORKDIR /data
+
+ENTRYPOINT [ "jekyll", "build", "--destination=/var/www/html", "--watch" ]
+
+运行容器
+docker run -v $PWD:/data/ --name james_blog jamtur01/jekyll
+============================================================================
+ 
+apache Dockerfile
+
+FROM ubuntu:16.04
+MAINTAINER James Turnbull <james@example.com>
+
+RUN apt-get -qq update
+RUN apt-get -qq install apache2
+
+VOLUME [ "/var/www/html" ]
+WORKDIR /var/www/html
+
+ENV APACHE_RUN_USER www-data
+ENV APACHE_RUN_GROUP www-data
+ENV APACHE_LOG_DIR /var/log/apache2
+ENV APACHE_PID_FILE /var/run/apache2.pid
+ENV APACHE_RUN_DIR /var/run/apache2
+ENV APACHE_LOCK_DIR /var/lock/apache2
+
+RUN mkdir -p $APACHE_LOG_DIR $APACHE_RUN_DIR $APACHE_LOCK_DIR
+
+EXPOSE 80
+
+ENTRYPOINT [ "/usr/sbin/apache2" ]
+
+运行容器
+docker run -d -P --volumes-from james_blog jamtur01/apache
+============================================================================
+
+镜像直接获取数据卷
+# node底包
+FROM node:9.11.1 as builder
+# 定义容器中的工作路径
+WORKDIR /app
+# 安装依赖
+COPY package.json package-lock.json yarn.lock ./
+RUN npm config set registry 'https://registry.npm.taobao.org' \
+    && npm install --pure-lockfile
+# 拷贝所有文件
+COPY . .
+#定义环境变量 平台代号
+ARG SITE_CODE
+ARG GATEWAY
+# 构建打包
+RUN npm run build
+
+FROM nginx:stable
+COPY --from=builder /app/.nginx.conf /etc/nginx/conf.d/default.conf
+COPY --from=builder /app/build /usr/share/nginx/html
+
+============================================================================
+
+
+docker volume create --name jenkins-home
+
+docker run -p 8080:8080 -p 50000:50000 -v jenkins_home:/var/jenkins_home -u some_other_user jenkins/jenkins:lts
+
+-v或者--volume标志用于独立容器，--mount标志用于群集服务。但是，从Docker 17.06开始，您还可以使用--mount独立容器。
+
+
+$ docker service create \
+     --mount 'type=volume,src=<VOLUME-NAME>,dst=<CONTAINER-PATH>,volume-driver=local,volume-opt=type=nfs,volume-opt=device=<nfs-server>:<nfs-path>,"volume-opt=o=addr=<nfs-address>,vers=4,soft,timeo=180,bg,tcp,rw"'
+    --name myservice \
+    <IMAGE>
+
+下面的示例显示了可能的语法--mount和-v语法，并 --mount首先给出。
+
+-v和--mount行为之间的差异
+与绑定挂载相反，卷的所有选项都可用于 标记--mount和-v标记。
+
+使用具有服务的卷时，仅--mount支持。
+
+创建和管理卷
+与绑定装载不同，您可以创建和管理任何容器范围之外的卷。
+
+创建一个卷：
+
+$ docker volume create my-vol
+清单卷：
+
+$ docker volume ls
+
+local               my-vol
+检查卷：
+
+$ docker volume inspect my-vol
+[
+    {
+        "Driver": "local",
+        "Labels": {},
+        "Mountpoint": "/var/lib/docker/volumes/my-vol/_data",
+        "Name": "my-vol",
+        "Options": {},
+        "Scope": "local"
+    }
+]
+删除卷：
+
+$ docker volume rm my-vol
+启动具有卷的容器
+如果启动具有尚不存在的卷的容器，Docker会为您创建卷。以下示例将卷myvol2装入 /app/容器中。
+
+所述-v和--mount以下实施例产生相同的结果。除非在运行第一个devtest容器和myvol2卷之后删除容器和卷，否则不能同时运行它们。
+
+
+--mount
+
+$ docker run -d \
+  --name devtest \
+  --mount source=myvol2,target=/app \
+  nginx:latest
+
+
+-v
+$ docker run -d \
+  --name devtest \
+  -v myvol2:/app \
+  nginx:latest
+
+使用docker inspect devtest验证创建卷并安装正确。寻找Mounts部分：
+
+"Mounts": [
+    {
+        "Type": "volume",
+        "Name": "myvol2",
+        "Source": "/var/lib/docker/volumes/myvol2/_data",
+        "Destination": "/app",
+        "Driver": "local",
+        "Mode": "",
+        "RW": true,
+        "Propagation": ""
+    }
+],
+
+这表明mount是一个卷，它显示正确的源和目标，并且mount是可读写的。
+
+停止容器并移除卷。注意删除卷是一个单独的步骤。
+
+$ docker container stop devtest
+
+$ docker container rm devtest
+
+$ docker volume rm myvol2
+
+使用卷启动服务
+启动服务并定义卷时，每个服务容器都使用自己的本地卷。如果使用local 卷驱动程序，则所有容器都不能共享此数据，但某些卷驱动程序确实支持共享存储。Docker for AWS和Docker for Azure都使用Cloudstor插件支持持久存储。
+
+以下示例启动nginx具有四个副本的服务，每个副本使用一个名为的本地卷myvol2。
+
+$ docker service create -d \
+  --replicas=4 \
+  --name devtest-service \
+  --mount source=myvol2,target=/app \
+  nginx:latest
+
+使用docker service ps devtest-service验证服务正在运行：
+
+$ docker service ps devtest-service
+
+ID                  NAME                IMAGE               NODE                DESIRED STATE       CURRENT STATE            ERROR               PORTS
+4d7oz1j85wwn        devtest-service.1   nginx:latest        moby                Running             Running 14 seconds ago
+删除服务，停止其所有任务：
+
+$ docker service rm devtest-service
+
+删除服务不会删除该服务创建的任何卷。去除卷是一个单独的步骤。
+
+服务的语法差异
+该docker service create命令不支持-v或--volume标志。将卷安装到服务的容器中时，必须使用该--mount 标志。
+
+
+使用容器填充卷
+如果启动一个创建新卷的容器（如上所述），并且容器在要挂载的目录中具有文件或目录（/app/如上所述），则将目录的内容复制到卷中。然后容器安装并使用该卷，而使用该卷的其他容器也可以访问预先填充的内容。
+
+为了说明这一点，此示例启动一个nginx容器，并nginx-vol使用容器/usr/share/nginx/html目录的内容 填充新卷，这是Nginx存储其默认HTML内容的位置。
+
+这些--mount和-v示例具有相同的最终结果。
+
+--mount
+
+$ docker run -d \
+  --name=nginxtest \
+  --mount source=nginx-vol,destination=/usr/share/nginx/html \
+  nginx:latest
+
+-v
+$ docker run -d \
+  --name=nginxtest \
+  -v nginx-vol:/usr/share/nginx/html \
+  nginx:latest
+
+运行这些示例之一后，运行以下命令以清理容器和卷。注意删除卷是一个单独的步骤。
+
+$ docker container stop nginxtest
+
+$ docker container rm nginxtest
+
+$ docker volume rm nginx-vol
+
+
+
+使用只读卷
+对于某些开发应用程序，容器需要写入绑定装入，以便将更改传播回Docker主机。在其他时候，容器只需要对数据的读访问权。请记住，多个容器可以安装相同的卷，并且可以为其中一些容器以读写方式挂载，同时为其他容器以只读方式挂载。
+
+此示例修改上面的一个，但通过ro在容器中的挂载点之后添加（默认为空）选项列表，将目录挂载为只读卷。如果存在多个选项，请用逗号分隔。
+
+这些--mount和-v示例具有相同的结果。
+
+--mount
+ 
+$ docker run -d \
+  --name=nginxtest \
+  --mount source=nginx-vol,destination=/usr/share/nginx/html,readonly \
+  nginx:latest
+
+
+-v
+$ docker run -d \
+  --name=nginxtest \
+  -v nginx-vol:/usr/share/nginx/html:ro \
+  nginx:latest
+
+
+使用docker inspect nginxtest验证绑定安装正确创建。寻找Mounts部分：
+
+"Mounts": [
+    {
+        "Type": "volume",
+        "Name": "nginx-vol",
+        "Source": "/var/lib/docker/volumes/nginx-vol/_data",
+        "Destination": "/usr/share/nginx/html",
+        "Driver": "local",
+        "Mode": "",
+        "RW": false,
+        "Propagation": ""
+    }
+],
+
+
+停止并取出容器，然后取出卷。去除卷是一个单独的步骤。
+
+$ docker container stop nginxtest
+
+$ docker container rm nginxtest
+
+$ docker volume rm nginx-vol
+
+在机器之间共享数据
+构建容错应用程序时，可能需要配置同一服务的多个副本才能访问相同的文件。
+
+共享存储
+
+在开发应用程序时，有几种方法可以实现此目的。一种是为应用程序添加逻辑，以将文件存储在Amazon S3等云对象存储系统上。另一种方法是使用支持将文件写入NFS或Amazon S3等外部存储系统的驱动程序创建卷。
+
+卷驱动程序允许您从应用程序逻辑中抽象底层存储系统。例如，如果您的服务使用具有NFS驱动程序的卷，则可以更新服务以使用其他驱动程序，例如在云中存储数据，而无需更改应用程序逻辑。
+
+
+
+使用音量驱动程序
+使用创建卷时docker volume create，或者启动使用尚未创建的卷的容器时，可以指定卷驱动程序。以下示例使用vieux/sshfs卷驱动程序，首先在创建独立卷时使用，然后在启动创建新卷的容器时使用。
+
+初始设置
+此示例假定您有两个节点，第一个节点是Docker主机，可以使用SSH连接到第二个节点。
+
+在Docker主机上，安装vieux/sshfs插件：
+
+$ docker plugin install --grant-all-permissions vieux/sshfs
+
+使用卷驱动程序创建卷
+此示例指定SSH密码，但如果两台主机配置了共享密钥，则可以省略密码。每个卷驱动程序可以具有零个或多个可配置选项，每个选项都使用-o标志指定。
+
+$ docker volume create --driver vieux/sshfs \
+  -o sshcmd=test@node2:/home/test \
+  -o password=testpassword \
+  sshvolume
+
+启动使用卷驱动程序创建卷的容器
+此示例指定SSH密码，但如果两台主机配置了共享密钥，则可以省略密码。每个卷驱动程序可以具有零个或多个可配置选项。如果卷驱动程序要求您传递选项，则必须使用该--mount标志来装入卷，而不是-v。
+
+$ docker run -d \
+  --name sshfs-container \
+  --volume-driver vieux/sshfs \
+  --mount src=sshvolume,target=/app,volume-opt=sshcmd=test@node2:/home/test,volume-opt=password=testpassword \
+  nginx:latest
+
+
+备份，还原或迁移数据卷
+卷对备份，还原和迁移很有用。使用该 --volumes-from标志创建一个安装该卷的新容器。
+
+备份容器
+例如，在下一个命令中，我们：
+
+启动新容器并从dbstore容器装入卷
+挂载本地主机目录为 /backup
+将dbdata卷内容的命令传递给目录中的backup.tar文件/backup。
+$ docker run --rm --volumes-from dbstore -v $(pwd):/backup ubuntu tar cvf /backup/backup.tar /dbdata
+当命令完成并且容器停止时，我们将留下我们dbdata卷的备份。
+
+
+
+从备份还原容器
+使用刚刚创建的备份，您可以将其还原到同一容器或您在其他位置创建的另一个容器。
+
+例如，创建一个名为的新容器dbstore2：
+
+$ docker run -v /dbdata --name dbstore2 ubuntu /bin/bash
+然后解压缩新容器的数据卷中的备份文件：
+
+$ docker run --rm --volumes-from dbstore2 -v $(pwd):/backup ubuntu bash -c "cd /dbdata && tar xvf /backup/backup.tar --strip 1"
+您可以使用上述技术使用首选工具自动执行备份，迁移和还原测试。
+
+
+
+删除卷
+删除容器后，Docker数据卷仍然存在。要考虑两种类型的卷：
+
+例如，命名卷在容器外部具有特定的源表单awesome:/bar。
+匿名卷没有特定的源，因此在删除容器时，指示Docker Engine守护程序删除它们。
+删除匿名卷
+要自动删除匿名卷，请使用该--rm选项。例如，此命令创建匿名/foo卷。移除容器后，Docker Engine会删除/foo卷但不会删除awesome卷。
+
+$ docker run --rm -v /foo -v awesome:/bar busybox top
+删除所有卷
+要删除所有未使用的卷并释放空间：
+
+$ docker volume prune
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

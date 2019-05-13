@@ -1,0 +1,59 @@
+
+tomcat运行war包容器的实例
+=================================================
+拉取war包镜像
+
+FROM ubuntu:16.04
+MAINTAINER James Turnbull <james@example.com>
+ENV REFRESHED_AT 2016-06-01
+
+RUN apt-get -qq update
+RUN apt-get -qq install wget
+
+VOLUME [ "/var/lib/tomcat8/webapps" ]
+WORKDIR /var/lib/tomcat8/webapps
+
+ENTRYPOINT [ "wget" ]
+CMD [ "--help" ]
+
+构建及运行
+docker build -t jamtur01/fetcher .
+docker run -it --name sample jamtur01/fetcher https://tomcat.apache.org/tomcat-7.0-doc/appdev/smple/sample.war
+
+把sample.war下载到/var/lib/tomcat8/webapps中
+=================================================
+
+运行war包镜像
+
+FROM ubuntu:16.04
+MAINTAINER James Turnbull <james@example.com>
+ENV REFRESHED_AT 2016-06-01
+
+RUN apt-get -qq update
+RUN apt-get -qq install tomcat8 default-jdk
+
+ENV CATALINA_HOME /usr/share/tomcat8
+ENV CATALINA_BASE /var/lib/tomcat8
+ENV CATALINA_PID /var/run/tomcat8.pid
+ENV CATALINA_SH /usr/share/tomcat8/bin/catalina.sh
+ENV CATALINA_TMPDIR /tmp/tomcat8-tomcat8-tmp
+
+RUN mkdir -p $CATALINA_TMPDIR
+
+VOLUME [ "/var/lib/tomcat8/webapps" ]
+
+EXPOSE 8080
+
+ENTRYPOINT [ "/usr/share/tomcat8/bin/catalina.sh", "run" ]
+
+构建及运行
+docker build -t jamtur01/tomcat8 .
+docker run --name sample_app --volumes-from sample -d -P jamtur01/tomcat7 
+=================================================
+
+
+
+
+
+
+

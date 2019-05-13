@@ -1,0 +1,50 @@
+启动redis容器
+docker run -d --name redis jamtur01/redis
+
+链接redis
+docker run -p 4567 --name webapp --link redis:db -it -v $PWD/webapp_redis:/opt/webapp jamtur01/sinatra /bin/bash
+docker run -p 4567 --name webapp2 --link redis:db ..
+docker run -p 4567 --name webapp3 --link redis:db ..
+
+***redis:db  redis：要链接的容器名字  db：链接的别名 ,可多次指定--link标志来链接多个容器。
+
+在容器内添加/etc/hosts记录
+docker run -p --add-host=docker:10.0.0.1 --name webapp2 --link redis:db ...
+
+进入容器，通过env查看变量
+
+
+docker run -d --name test2 --link test1 busybox /bin/sh -c "while true; do sleep 3600; done"
+test2 会把test1的主机名写入host中
+
+创建redis镜像
+docker run -d --name redis redis
+
+构建flask-redis镜像
+docker build -t hx6007/flask-redis .
+
+运行redis容器
+docker run -d -p 5000:5000 --link redis --name flask-redis -e REDIS_HOST=redis hx6007/flask-redis
+
+用exec进入redis容器，用env查看，发现有了环境变量
+REDIS_HOST=redis
+
+所以ping redis ,可以ping得通
+
+
+实例：
+
+启动mysql容器
+docker run -d  --name mysql -v mysql-data:/var/lib/mysql -e MYSQL_ROOT_PASSWORD=root -e MYSQL_DATABASE=wordpress mysql
+
+启动workpress容器
+docker run -d -e WORDPRESS_DB_HOST=mysql:3306 --link mysql -p 8080:80 wordpress
+
+
+
+
+
+
+
+
+

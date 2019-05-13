@@ -1,0 +1,1 @@
+docker run -it -d --name postgres10 -e POSTGRES_PASSWORD=password   -v /data/dockerpostgresqldata:/var/lib/postgresql/data -p 5432:5432   postgres:10.1

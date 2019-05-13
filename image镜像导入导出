@@ -1,0 +1,47 @@
+
+保存容器
+
+docker save 容器名 | gzip > 容器名.tar.gz
+
+导入容器 
+
+docker load -i 容器名.tar.gz
+
+
+
+批量打包镜像,将机器上的所有镜像打包到haha.tar文件里面。
+
+# docker save $(docker images | grep -v REPOSITORY | awk 'BEGIN{OFS=":";ORS=" "}{print $1,$2}') -o haha.tar
+
+导入镜像：
+
+# docker load -i haha.tar
+
+然后docker images就可以看到拷贝过来的镜像了
+
+
+
+例子
+
+1、将java8的镜像保存为文件：
+
+docker save -o java8.tar lwieske/java-8
+
+2、从文件载入镜像可以使用Docker load命令。
+
+docker load --input 文件
+ 或者
+docker load < 文件名
+
+
+
+     此时会导入镜像以及相关的元数据信息等。
+
+    首先使用SSH工具将文件上传到另一台服务器。
+
+
+
+3.    然后通过命令载入镜像：
+docker load < java8.tar
+
+

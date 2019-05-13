@@ -1,0 +1,1 @@
+docker run -it --name redis -v /data/dockerredisdata/:/data -p 6379:6379 -d redis:4.0.2 redis-server --appendonly yes

@@ -1,0 +1,142 @@
+ad
+
+
+*/staging
+
+REGISTRY="192.168.1.141:5000"
+docker build -t $REGISTRY/adv --build-arg AD_ENDPOINT=http://as-api.heyiit.com/ --build-arg 
+
+QINIU_DOWNLOAD=http://as-img.51etm.com/  .
+docker push  $REGISTRY/adv 
+
+
+工程 ad-api
+*/staging
+
+REGISTRY="192.168.1.141:5000"
+docker image build -t $REGISTRY/ad-api .
+docker push $REGISTRY/ad-api
+# docker images | grep none | xargs docker rmi -f
+
+
+
+工程 B2B-9
+*/staging
+
+ETMIMAGE=51etm
+EXCIMAGE=51exc
+EFXIMAGE=97efx
+EZZIMAGE=ezz168
+MAIQIDUOIMAGE=maqiduo
+YTMWIMAGE=like_peach
+KIKIIMAGE=kiki
+EJKIMAGE=97ejk
+EZGIMAGE=51ezg
+
+REGISTRY="192.168.1.141:5000"
+WANGGUAN="https://java-getway.51etm.com"
+AD_ROOT="http://as.heyiit.com/"
+AD_ENDPOINT="http://as-api.heyiit.com/"
+
+docker image build  -t $REGISTRY/$ETMIMAGE:production --build-arg AD_ENDPOINT=$AD_ENDPOINT --build-arg AD_ROOT=
+
+$AD_ROOT --build-arg SITE_CODE=$ETMIMAGE --build-arg GATEWAY=$WANGGUAN  .
+docker push $REGISTRY/$ETMIMAGE:production
+
+docker image build  -t $REGISTRY/$EXCIMAGE:production --build-arg AD_ENDPOINT=$AD_ENDPOINT --build-arg AD_ROOT=
+
+$AD_ROOT  --build-arg SITE_CODE=$EXCIMAGE --build-arg GATEWAY=$WANGGUAN  .
+docker push $REGISTRY/$EXCIMAGE:production
+
+docker image build  -t $REGISTRY/$EFXIMAGE:production --build-arg AD_ENDPOINT=$AD_ENDPOINT --build-arg AD_ROOT=
+
+$AD_ROOT  --build-arg SITE_CODE=$EFXIMAGE --build-arg GATEWAY=$WANGGUAN  .
+docker push $REGISTRY/$EFXIMAGE:production
+
+docker image build  -t $REGISTRY/$EZZIMAGE:production --build-arg AD_ENDPOINT=$AD_ENDPOINT --build-arg AD_ROOT=
+
+$AD_ROOT  --build-arg SITE_CODE=$EZZIMAGE --build-arg GATEWAY=$WANGGUAN  .
+docker push $REGISTRY/$EZZIMAGE:production
+
+docker  image  build  -t $REGISTRY/$MAIQIDUOIMAGE:production --build-arg AD_ENDPOINT=$AD_ENDPOINT --build-arg 
+
+AD_ROOT=$AD_ROOT  --build-arg SITE_CODE=$MAIQIDUOIMAGE --build-arg GATEWAY=$WANGGUAN  .
+docker push $REGISTRY/$MAIQIDUOIMAGE:production
+
+
+docker  image  build  -t $REGISTRY/$YTMWIMAGE:production --build-arg AD_ENDPOINT=$AD_ENDPOINT --build-arg 
+
+AD_ROOT=$AD_ROOT  --build-arg SITE_CODE=$YTMWIMAGE --build-arg GATEWAY=$WANGGUAN  .
+docker push $REGISTRY/$YTMWIMAGE:production
+
+docker  image  build  -t $REGISTRY/$KIKIIMAGE:production --build-arg AD_ENDPOINT=$AD_ENDPOINT --build-arg 
+
+AD_ROOT=$AD_ROOT  --build-arg SITE_CODE=$KIKIIMAGE --build-arg GATEWAY=$WANGGUAN  .
+docker push $REGISTRY/$KIKIIMAGE:production
+
+docker  image  build  -t $REGISTRY/$EJKIMAGE:production --build-arg AD_ENDPOINT=$AD_ENDPOINT --build-arg 
+
+AD_ROOT=$AD_ROOT  --build-arg SITE_CODE=$EJKIMAGE --build-arg GATEWAY=$WANGGUAN  .
+docker push $REGISTRY/$EJKIMAGE:production
+
+docker  image  build  -t $REGISTRY/$EZGIMAGE:production --build-arg AD_ENDPOINT=$AD_ENDPOINT --build-arg 
+
+AD_ROOT=$AD_ROOT  --build-arg SITE_CODE=$EZGIMAGE --build-arg GATEWAY=$WANGGUAN  .
+docker push $REGISTRY/$EZGIMAGE:production
+
+
+
+
+工程 ezc
+
+*/production
+
+IMAGENAME=ezc
+REGISTRY="192.168.1.141:5000"
+docker build -t $REGISTRY/$IMAGENAME .
+docker push  $REGISTRY/$IMAGENAME
+
+
+工程 lolatc
+*/lola_ceramics
+
+LOLATCIMAGE=lola_ceramics
+REGISTRY="192.168.1.141:5000"
+WANGGUAN="https://java-getway.51etm.com"
+AD_ROOT="http://as.heyiit.com/"
+AD_ENDPOINT="http://as-api.heyiit.com/"
+
+docker  image  build  -t $REGISTRY/$LOLATCIMAGE:production --build-arg AD_ENDPOINT=$AD_ENDPOINT --build-arg 
+
+AD_ROOT=$AD_ROOT  --build-arg SITE_CODE=$LOLATCIMAGE --build-arg GATEWAY=$WANGGUAN  .
+docker push $REGISTRY/$LOLATCIMAGE:production
+
+
+
+工程 photo
+
+*/staging
+
+
+REGISTRY="192.168.1.141:5000"
+docker build -t $REGISTRY/photo --build-arg GATEWAY=https://java-getway.51etm.com --build-arg 
+
+PHOTO_API=http://api.51etuku.com --build-arg QINIU_DOWNLOAD=//pho-img.51etm.com/  --build-arg QINIU_UPLOAD=//up-
+
+z2.qiniu.com/  .
+docker push  $REGISTRY/photo 
+
+
+工程 photo-api
+
+*/staging
+
+REGISTRY="192.168.1.141:5000"
+docker image build -t $REGISTRY/pic-api .
+docker push $REGISTRY/pic-api
+
+
+
+
+
+

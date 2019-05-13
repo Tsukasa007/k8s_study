@@ -1,0 +1,221 @@
+
+C:\Users\huangxin\Desktop\资料\pinpoint安装搭建\pinpoint-docker-compose-install.zip
+
+链接：https://pan.baidu.com/s/1WleoYuUll8q9pds3EjdYyw 
+提取码：brpc 
+ 
+
+unzip pinpoint-docker-compose-install.zip
+cd pinpoint-docker-compose-install/
+docker load -i pinpoint-all-image.tar
+
+cd pinpoint-docker-compose-install
+mv docker-compose /usr/local/bin/
+chmod +x /usr/local/bin/docker-compose
+cd pinpoint-docker
+docker-compose pull && docker-compose up -d
+
+
+
+
+web  访问
+
+http://192.168.238.198:8079/#/main
+http://192.168.238.198:8081/#/submit
+http://192.168.238.198:8000/
+
+
+
+
+Pinpoint Agent 部署
+
+注意：如果是应用和pinpoint-collector部署在不同服务器，pinpoint.config需要修改pinpoint-collector的ip
+profiler.collector.ip=127.0.0.1
+
+
+
+
+解压inpoint-agent-1.8.3，改名
+
+mv inpoint-agent-1.8.3 inpoint-agent
+
+docker 镜像构建时要把pinpoint-agent解压后的把放进去，启动时要用这个路径去启动,Dockerfile 处理方式
+
+COPY pinpoint-agent /pinpoint-agent
+
+jar 启动时需要添加的参数
+"-javaagent:/pinpoint-agent/pinpoint-bootstrap-1.8.3.jar","-Dpinpoint.agentId=tplmo-channel","-Dpinpoint.applicationName=tplmo-channel",
+
+说明：
+-javaagent:/pinpoint-agent/pinpoint-bootstrap-1.8.3.jar  (注意路径)
+-Dpinpoint.agentId=tplmo-channel（名字随便填）
+-Dpinpoint.applicationName=tplmo-channel（名字随便填）
+
+
+
+
+
+
+修改数据库相关参数，数据保存时间
+
+
+进入容器
+docker exec -it pinpoint-hbase bash
+
+
+进入hbase数据库
+/opt/hbase/hbase-1.2.6/bin/hbase shell
+
+
+
+ ================ 设置 TraceV2  表,修改保存天数为1天 ================ 
+
+查看表内容
+hbase(main):003:0> describe 'TraceV2'
+
+
+
+统计表内所有内容
+hbase(main):003:0> count 'TraceV2' 
+
+
+删除表的所有资料
+hbase(main):004:0> truncate 'TraceV2'
+
+
+
+设置 ttl（改）--测试修改成功
+
+hbase(main):004:0> disable "TraceV2"  #禁用表
+0 row(s) in 2.3380 seconds
+ 
+hbase(main):005:0> alter "TraceV2",NAME=>'S',TTL=>'86400' #设置TTL值，作用于列族data
+Updating all regions with the new schema...
+1/1 regions updated.
+Done.
+0 row(s) in 1.9510 seconds
+ 
+hbase(main):006:0> enable  "TraceV2"  #恢复表
+
+
+
+
+ ================ 设置 AgentStatV2  表,修改保存天数为1天 ================ 
+
+
+查看表内容
+hbase(main):003:0> describe 'AgentStatV2'
+
+
+
+统计表内所有内容
+hbase(main):003:0> count 'AgentStatV2' 
+
+
+删除表的所有资料
+hbase(main):004:0> truncate 'AgentStatV2'
+
+
+
+设置 ttl（改）--测试修改成功
+
+hbase(main):004:0> disable "AgentStatV2"  #禁用表
+0 row(s) in 2.3380 seconds
+ 
+hbase(main):005:0> alter "AgentStatV2",NAME=>'S',TTL=>'86400' #设置TTL值，作用于列族data
+Updating all regions with the new schema...
+1/1 regions updated.
+Done.
+0 row(s) in 1.9510 seconds
+ 
+hbase(main):006:0> enable  "AgentStatV2"  #恢复表
+
+
+
+
+ ================ 设置 ApplicationTraceIndex  表,修改保存天数为1天 ================ 
+
+
+查看表内容
+hbase(main):003:0> describe 'ApplicationTraceIndex'
+
+
+
+统计表内所有内容
+hbase(main):003:0> count 'ApplicationTraceIndex' 
+
+
+删除表的所有资料
+hbase(main):004:0> truncate 'ApplicationTraceIndex'
+
+
+
+设置 ttl（改）--测试修改成功
+
+hbase(main):004:0> disable "ApplicationTraceIndex"  #禁用表
+0 row(s) in 2.3380 seconds
+ 
+hbase(main):005:0> alter "ApplicationTraceIndex",NAME=>'I',TTL=>'86400' #设置TTL值，作用于列族data
+Updating all regions with the new schema...
+1/1 regions updated.
+Done.
+0 row(s) in 1.9510 seconds
+ 
+hbase(main):006:0> enable  "ApplicationTraceIndex"  #恢复表
+
+
+
+
+
+
+
+
+
+
+完
+----------------------------------------------------------------
+
+
+以下内容参考用
+
+
+提前安装docker-compose
+
+官网参考：
+https://github.com/naver/pinpoint-docker#testing-quickstart-application
+mv docker-compose /usr/local/bin/
+## git clone https://github.com/naver/pinpoint-docker.git
+cd pinpoint-docker
+docker-compose pull && docker-compose up -d
+
+
+官网参数
+
+-javaagent:$AGENT_PATH/pinpoint-bootstrap-$VERSION.jar
+-Dpinpoint.agentId
+-Dpinpoint.applicationName
+
+
+获取上面参数的方式：
+
+[root@localhost pinpoint-docker]# docker exec -it  pinpoint-quickstart bash
+
+root@41706728aeea:/usr/local/tomcat# env
+
+JAVA_OPTS=-javaagent:/pinpoint-agent/pinpoint-bootstrap-1.8.3.jar -Dpinpoint.agentId=app-in-docker -Dpinpoint.applicationName=quickapp
+
+
+
+
+JAVA_OPTS=" -Duser.timezone=\"Asia/Shanghai\" -Djava.awt.headless=true -Djava.net.preferIPv4Stack=true"
+
+PINPOINT_OPTS=" -javaagent:/opt/pinpoint/pinpoint-bootstrap-*.jar -Dpinpoint.agentId=store-demo-agent01 \
+    -Dpinpoint.applicationName=store-demo"
+
+java -jar ${JAVA_OPTS} ${PINPOINT_OPTS} /opt/store-demo-*.jar
+ 
+
+
+
+
+

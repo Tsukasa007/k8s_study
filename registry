@@ -1,0 +1,125 @@
+ docker run -d -p 5000:5000 --restart always --name registry registry:2
+ 
+ cat >> /etc/docker/daemon.json << eof
+{
+  "registry-mirrors": ["https://registry.docker-cn.com"],
+  "insecure-registries": ["192.168.224.143:5000"]
+}
+eof
+
+
+sed -i 'n;12aEnvironmentFile=-/etc/docker/daemon.json' /lib/systemd/system/docker.service
+
+systemctl daemon-reload
+service docker restart
+
+http://192.168.224.142:5000/v2/_catalog
+
+镜像改名
+docker tag csphere/hello:1.0 192.168.224.142:5000/csphere/hello:1.0
+
+推送
+docker push 192.168.224.143:5000/csphere/hello:1.0
+
+
+echo "=====查看镜像推送状态====="
+curl -X GET 192.168.224.143:5000/v2/_catalog
+curl -X GET 192.168.224.143:5000/v2/$IMAGE_NAME/tags/list
+
+
+
+
+启用HTTPSDocker对所有请求启用TLS验证，启用HTTPS需要对Docker启动文件进行配置，可使用命令：
+
+dockerd --tlsverify --tlscacert=ca.pem --tlscert=server-cert.pem --tlskey=server-key.pem \ -H=10.47.40.110:2376
+
+
+章镜像仓库管理镜像仓库是用来存储和管理容器镜像文件的。
+镜像仓库主流实现方案有两种：Docker Registry和Harbor，本章分别对这两种方式进行介绍。
+
+　Docker HubDocker Hub是Docker公司官方提供的公共镜像仓库，此镜像库中提供了上万种官方镜像文件。
+
+1.注册使用Docker Hub前需要注册用户账户，访问地址为https://cloud.docker.com，可以在此网站上注册用户。
+
+
+2.登录及退出登录
+Docker Hub有两种方式，
+一种是使用docker login输入用户名及密码以完成登录，在命令行模式下进行与镜像相关的操作，
+另外一种就是在Docker Hub的可视化界面中操作。
+退出Docker Hub时，可以使用docker logout直接退出命令行模式。
+
+3.镜像查询
+可以通过docker search进行镜像文件的查询或在官网中进行查找。
+
+4.镜像下载
+可以通过docker pull下载镜像文件。通常在下载前会通过docker search搜索是否有相关的镜像。
+
+5.镜像上传
+可以通过docker push上传镜像文件。由于一些特殊原因在国内访问Docker Hub上的服务比较慢，因此国内主流容器云服务商提供了针对Docker Hub的镜像服务（Registry Mirror），这些镜像服务被称为加速器。使用加速器会直接从国内的地址下载Docker Hub的镜像，比直接从Docker Hub下载的速度会提高很多。
+
+
+第三方公共仓库国内也有一些主流的容器云服务商提供类似于Docker Hub的公开服务。比如网易云镜像服务、阿里云镜像库、DaoCloud镜像市场等，这些镜像仓库上也会提供不少镜像文件供用户下载使用。
+
+
+
+
+
+
+　建立私有镜像仓库
+
+Docker公司官方提供的Docker Hub镜像仓库由于服务器在国外，网速会非常慢且存在不安全因素，而国内第三方公共仓库不受自己控制，因此具有一定规模的企业都会建立自己的私有镜像仓库，上传镜像到私有镜像参考，在构建容器化应用时，可以快速地下载镜像文件使用。
+
+我们在Docker 1.12以后的版本环境中搭建无认证的Registry。
+
+Dockerd的配置文件在/etc/docker/daemon.json中，如果没有该文件，可以手动创建。
+
+第一步：从Docker官方镜像仓库下载Registry。 
+
+docker pull registry <版本号> ——不指定版本,表示latest版本 
+
+第二步：配置daemon.json,去掉Docker默认的https的访问。 
+
+vim /etc/docker/daemon.json 
+{ 
+"insecure-registries":["10.47.43.100:5000"] 
+}      ——增加insecure-registries的项目 
+
+第三步：重启Docker,执行以下命令。 
+
+systemctl daemon-reload 
+
+docker systemctl restart docker 
+
+第四步：无认证方式启动Registry容器。 
+docker run -d --name registry -p 5000:5000 --restart=always -v /opt/registry/:/var/lib/registry/ registry 
+
+第五步：测试是否启动容器。
+
+在浏览器中访问http://10.47.43.100:5000/v2/_catalog,如果返回{"repositories":[]},就代表启动成功了。 
+
+第六步：上传镜像到镜像仓库测试push功能。 
+
+docker tag MySQL 10.47.43.100:5000/MySQL——必须带有"10.47.43.100:5000/"这个前缀,
+
+然后开始上传镜像到我们建立的私有Registry 
+
+docker push 10.47.43.100:5000/MySQL 
+
+再在浏览器中访问http://10.47.43.100:5000/v2/_catalog，可以看到返回{"repositories": ["MySQL"]},说明已经上传成功。 
+
+第七步：从镜像仓库下载镜像测试pull功能。 首先删除本机存在的镜像10.47.43.100:5000/MySQL (刚才通过tag重命名的): 
+
+docker rmi 10.47.43.100:5000/MySQL 
+
+然后执行docker images,可以看到已经没有了10.47.43.100:5000/MySQL这个镜像。
+
+下面开始下载这个镜像: 
+
+docker pull 10.47.43.100:5000/MySQL 
+
+然后再执行docker images,可以看到10.47.43.100:5000/MySQL,说明下载成功了。
+
+
+
+
+

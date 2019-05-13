@@ -1,0 +1,68 @@
+******** install ********
+
+
+
+wget http://repos.fedorapeople.org/repos/dchen/apache-maven/epel-apache-maven.repo -O /etc/yum.repos.d/epel-apache-maven.repo
+yum -y install apache-maven
+
+
+curl --silent --location https://rpm.nodesource.com/setup_9.x | bash -
+yum install -y gcc-c++ make libpng-devel  nodejs
+
+
+
+
+npm config set registry https://registry.npm.taobao.org
+npm config get registry
+
+
+sudo yum install -y yum-utils device-mapper-persistent-data lvm2
+sudo yum-config-manager --add-repo http://mirrors.aliyun.com/docker-ce/linux/centos/docker-ce.repo
+sudo yum install docker-ce -y
+systemctl enable  docker 
+systemctl daemon-reload
+sudo service docker start
+service docker status
+
+
+docker pull 13660129620/jenkins:1.609
+docker pull fabric8/java-alpine-openjdk8-jdk
+
+docker network create app
+  
+docker run -d --net=app --restart=always --name redisdb redis
+ 
+docker run -d -p 3306:3306 --net=app --restart=always   --name mysqldb -e MYSQL_ROOT_PASSWORD=rootroot  -v /mydata:/var/lib/mysql  mysql
+
+登陆mysql增加数据库：platform   salve
+
+docker run -d -p 8080:8080 --restart=always --name jenkins -v /usr/bin/docker:/usr/bin/docker -v /var/run/docker.sock:/var/run/docker.sock -v /var/jenkins_home:/var/jenkins_home -v /usr/lib64/libltdl.so.7:/usr/lib64/libltdl.so.7 -v /root/.ssh/:/root/.ssh 13660129620/jenkins:1.609
+
+jenkins 安装插件、配置凭证、配置
+
+
+
+新建项目--Execute shell script on remote host using ssh
+
+cd $WORKSPACE/ns-platform/src/main/resources/static
+npm i
+cd $WORKSPACE
+mvn clean
+mvn package
+mv $WORKSPACE/ns-platform/target/platform-mamagement.jar ./
+docker build -t platform .
+if docker ps -a | grep platform ;then
+   docker rm -f platform
+fi
+docker run -d --restart=always --net=app  -p 80:8081 --name platform platform
+rm -rf   platform-mamagement.jar
+
+
+
+
+
+
+
+
+
+
