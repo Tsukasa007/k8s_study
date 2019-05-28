@@ -1,0 +1,25 @@
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: liveness-exec
+  labels:
+    k8s-app: liveness
+spec:
+  containers:
+    - name: liveness
+      image: busybox
+      args:
+        - /bin/sh
+        - -c
+        - touch /tmp/healthy; sleep 30;rm -rf /tmp/healthy;sleep 600;
+      #存活探针 exec
+      livenessProbe:
+        exec:
+          command:
+            - cat
+            - /tmp/healthy
+        #第一次执行存活探针的时间
+        initialDelaySeconds: 5
+        #每间隔5秒
+        periodSeconds: 5

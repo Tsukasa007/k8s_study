@@ -1,0 +1,22 @@
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: liveness-http
+  labels:
+    k8s-app: liveness
+spec:
+  containers:
+    - name: liveness
+      image: cnych/liveness
+      args:
+        - /server
+      #存活探针 http
+      livenessProbe:
+        httpGet:
+          path: /healthz
+          port: 8080
+        #第一次执行存活探针的时间
+        initialDelaySeconds: 5
+        #每间隔5秒
+        periodSeconds: 5
