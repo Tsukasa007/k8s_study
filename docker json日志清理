@@ -1,0 +1,6 @@
+cd /var/lib/docker/containers/
+du -sh *
+找到最大
+cd xxxxxxxxxxxxxxxxxx
+
+echo /dev/null > xxxxxxxxxxxxxxxxxxxxxxx
