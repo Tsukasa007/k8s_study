@@ -1,0 +1,2 @@
+docker  run -p 3306:3306 --name mysql -v /home/mysql/conf/my.cnf:/etc/mysql/mysql.cnf.d/mysqld.cnf -v /home/mysql/data:/var/lib/mysql -e MYSQL_ROOT_PASSWORD=Abc123.com -d mysql:5.7
+5.7.17 以上已经没有my.ini了,请使用以上方法 挂载配置与data目录
