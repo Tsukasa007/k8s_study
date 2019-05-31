@@ -1,0 +1,21 @@
+docker 强制删除（rm -f）container时出现错误提示
+
+[root@Ieat1 ~]# docker rm -f nginx
+Error response from daemon: Driver devicemapper failed to remove root filesystem a838d837988a593de3e997748cc80b1540dd31697f66e93dad275fbeaa5b3278: Device is Busy...
+
+
+查看容器状态
+[root@Ieat1 ~]# docker ps -a|grep nginx
+a838d837988a        nginx                                                   "nginx -g 'daemon ..."   3 weeks ago         Dead
+
+
+
+发现它是 status为dead的容器，实际上，吞掉这个错误就可以了
+
+docker stop nginx 1>/dev/null 2>&1 | exit 0
+docker rm -f nginx 1>/dev/null 2>&1 | exit 0
+
+
+再次查看发现已经删除掉了
+
+[root@Ieat1 ~]# docker ps -a|grep nginx
