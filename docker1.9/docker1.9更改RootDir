@@ -1,0 +1,3 @@
+vim /etc/sysconfig/docker
+加上
+other_args="--graph=/home/docker"
