@@ -1,0 +1,22 @@
+cat /porc/sys/net/ipv4/ip_forward 开是否是1
+echo 1 > /porc/sys/net/ipv4/ip_forward #这是个暂时的做法，重启后就会失效，好的做法是：
+vim /etc/sysctl.conf
+修改其中的net.ipv4.ip_forward = 1
+sysctl -p
+
+
+iptables -F -t nat  清空规则
+
+
+外网转发
+iptables -t nat -A PREROUTING -d 10.45.210.103 -p tcp --dport 3306 -j DNAT --to-destination 10.45.210.67:3306
+iptables -t nat -A POSTROUTING -d 10.45.210.67 -p tcp --dport 3306 -j SNAT --to-source 10.45.210.103
+
+
+
+本地连接指的是在本机上，用 127.0.0.1 或者本机 IP 来访问本机的端口。本地连接的数据包不会通过网卡，而是由内核处理后直接发给本地进程。
+这种数据包在 iptables 中只经过 OUTPUT 链，而不会经过 PREROUTING 链。所以需要在 OUTPUT 链中进行 DNAT。除了对 127.0.0.1 之外，
+对本机 IP (即 10.45.210.67) 的访问也属于本地连接。
+内网转发(本机内转发)
+iptables -t nat -A OUTPUT -p tcp -d 10.45.210.103 --dprot -j DNAT --to 10.45.210.67:3306
+iptables -t nat -A OUTPUT -p tcp -d 10.45.210.67  --dport -j DNAT --to 10.45.210.103:3306
