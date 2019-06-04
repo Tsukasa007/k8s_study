@@ -38,7 +38,8 @@ ntpdate -u ntp.api.bz
 
 ## 升级内核
 ```bash
-rpm -Uvh http://www.elrepo.org/elrepo-release-7.0-2.el7.elrepo.noarch.rpm ;yum --enablerepo=elrepo-kernel install kernel-ml-devel kernel-ml -y
+rpm -Uvh https://www.elrepo.org/elrepo-release-7.0-2.el7.elrepo.noarch.rpm ;
+yum --enablerepo=elrepo-kernel install kernel-ml-devel kernel-ml -y
 ```
 
 ## 检查默认内核版本是否大于4.14，否则请调整默认启动参数(grub2-set-default 0)
