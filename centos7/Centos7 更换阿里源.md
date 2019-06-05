@@ -14,7 +14,7 @@ wget -O /etc/yum.repos.d/CentOS-Base.repo http://mirrors.aliyun.com/repo/Centos-
 yum makecache
 ```
 
-* 查看
+* 查看(不是必须)
 ```bash
 yum -y update
 ```
