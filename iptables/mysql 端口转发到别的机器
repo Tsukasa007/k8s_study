@@ -18,5 +18,7 @@ iptables -t nat -A POSTROUTING -d 10.45.210.67 -p tcp --dport 3306 -j SNAT --to-
 这种数据包在 iptables 中只经过 OUTPUT 链，而不会经过 PREROUTING 链。所以需要在 OUTPUT 链中进行 DNAT。除了对 127.0.0.1 之外，
 对本机 IP (即 10.45.210.67) 的访问也属于本地连接。
 内网转发(本机内转发)
-iptables -t nat -A OUTPUT -p tcp -d 10.45.210.103 --dprot -j DNAT --to 10.45.210.67:3306
-iptables -t nat -A OUTPUT -p tcp -d 10.45.210.67  --dport -j DNAT --to 10.45.210.103:3306
+iptables -t nat -A OUTPUT -p tcp -d 10.45.210.103 3306 --dprot -j DNAT --to 10.45.210.67:3306
+
+
+#####iptables -t nat -A OUTPUT -p tcp -d 10.45.210.67  --dport -j DNAT --to 10.45.210.103:3306
