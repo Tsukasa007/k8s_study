@@ -79,7 +79,7 @@ vim ~/.oh-my-zsh/custom/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh
 ```
 * 将这里调整为10
 ```bash
-ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=2'
+ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=3'
 ```
 
 * 在.zshrc中加入下面一行内容，使用逗号就可以自动补全
