@@ -29,6 +29,19 @@ net.bridge.bridge-nf-call-ip6tables = 1
 sysctl -p
 ```
 
+######如果
+```bash
+vm.swappiness = 0
+sysctl: cannot stat /proc/sys/net/bridge/bridge-nf-call-iptables: 没有那个文件或目录
+net.ipv4.conf.all.rp_filter = 1
+net.ipv4.ip_forward = 1
+sysctl: cannot stat /proc/sys/net/bridge/bridge-nf-call-ip6tables: 没有那个文件或目录
+```
+######执行下面继续sysctl -p
+```bash
+modprobe br_netfilter 
+```
+
 
 ## 同步时间
 ```bash
@@ -57,9 +70,7 @@ reboot
 ```bash
 uname -a
 cat > /etc/sysconfig/modules/ipvs.modules <<EOF
-```
-##!/bin/bash
-```bash
+#!/bin/bash
 ipvs_modules="ip_vs ip_vs_lc ip_vs_wlc ip_vs_rr ip_vs_wrr ip_vs_lblc ip_vs_lblcr ip_vs_dh ip_vs_sh ip_vs_fo ip_vs_nq ip_vs_sed ip_vs_ftp nf_conntrack"
 for kernel_module in \${ipvs_modules}; do
  /sbin/modinfo -F filename \${kernel_module} > /dev/null 2>&1
@@ -68,6 +79,8 @@ for kernel_module in \${ipvs_modules}; do
  fi
 done
 EOF
+```
+```bash
 chmod 755 /etc/sysconfig/modules/ipvs.modules && bash /etc/sysconfig/modules/ipvs.modules && lsmod | grep ip_vs
 ```
 
@@ -118,19 +131,21 @@ systemctl enable docker
 systemctl start docker
 ```
 
+* 如果启动不了docker 尝试 修改镜像文件为/etc/docker/daemon.json后缀为.conf
+
 
 ## 导入kube镜像
 ```bash
-链接：https://pan.baidu.com/s/1FJiEGCUPPQ7dib5tVf7sDQ
-提取码：5u12
+链接：https://pan.baidu.com/s/1bFDrSay2B8SFcUL4xcFiLA
+提取码：eo2g
 docker load -i xxxx
 ```
 
 ```bash
 k8s-v1.14.0-rpms.tgz 下载 并放在 /path/to/downloaded/file
 mkdir -p /path/to/downloaded/file
-链接：https://pan.baidu.com/s/180Kd3yKh_47CaGMenPLtKA
-提取码：lhos
+链接：https://pan.baidu.com/s/1CZJz3tGP_hF17icvaRnGKw
+提取码：clpg
 ```
 
 ***
@@ -147,10 +162,12 @@ systemctl enable kubelet
 kubeadm version -o short
 ```
 
+
+#Master 执行!!!(注意更改ip)
 ```bash
 {
     # master 集群启动
-    kubeadm init --kubernetes-version=v1.14.0 --pod-network-cidr=10.244.0.0/16 --apiserver-advertise-address=192.168.3.108
+    kubeadm init --kubernetes-version=v1.14.0 --pod-network-cidr=10.244.0.0/16 --apiserver-advertise-address=192.168.3.201
 
     # 别忘了启动log的命令
     mkdir -p $HOME/.kube
