@@ -1,6 +1,6 @@
 #zsh
 
-* 基本zsh安装
+#1. 基本zsh安装
 ```bash
 yum install -y zsh
 ```
@@ -30,7 +30,7 @@ chsh -s /bin/bash root
 
 
 
-* powerline-shell安装
+#2. powerline-shell安装
 ```bash
 pip install powerline-shell
 ```
@@ -61,7 +61,7 @@ fi
 ```
 
 
-* 安装自动提示插件
+#3. 安装自动提示插件
 ```bash
 git clone git://github.com/zsh-users/zsh-autosuggestions ~/.oh-my-zsh/custom/plugins/zsh-autosuggestions
 ```
@@ -81,5 +81,27 @@ vim ~/.oh-my-zsh/custom/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh
 ```bash
 ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=2'
 ```
+
+* 在.zshrc中加入下面一行内容，使用逗号就可以自动补全
+```bash
+bindkey ',' autosuggest-accept
+```
+
+
+#4. 高亮插件
+* 下载插件
+```bash
+git clone git://github.com/zsh-users/zsh-syntax-highlighting ~/.oh-my-zsh/custom/plugins/zsh-syntax-highlighting
+```
+
+* 配置方式同上，高亮插件一般设置为最后一个加载的插件
+```bash
+plugins=(
+  git
+  zsh-autosuggestions
+  zsh-syntax-highlighting
+)
+```
+
 
 
