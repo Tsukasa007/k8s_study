@@ -1,6 +1,6 @@
 docker run -d --hostname rabbitmq \
 --name rabbitmq \
--e RABBITMQ_DEFAULT_USER=tplhk \
+-e RABBITMQ_DEFAULT_USER=dfaslfjs \
 -e RABBITMQ_DEFAULT_PASS=123456  \
 -p 4369:4369 \
 -p 5671:5671 \
