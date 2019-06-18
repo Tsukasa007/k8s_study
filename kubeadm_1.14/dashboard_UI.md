@@ -26,7 +26,7 @@ kubectl get svc kubernetes-dashboard -n kube-system
 
 
 以下是文件 (直接 vim 也行)
-
+```yaml
 # Copyright 2017 The Kubernetes Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -190,6 +190,8 @@ spec:
       targetPort: 8443
   selector:
     k8s-app: kubernetes-dashboard
+```
+
 
 
 

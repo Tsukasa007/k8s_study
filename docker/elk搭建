@@ -1,0 +1,35 @@
+https://elk-docker.readthedocs.io/#installation
+https://github.com/spujadas/elk-docker
+文件解决
+https://blog.csdn.net/qq_33363618/article/details/78882827
+
+
+
+docker run  --net host  -it --name elk sebp/elk:662
+
+进去容器
+
+/etc/logstash/conf.d/
+
+vim logstash-elasticsearc.conf
+
+input {
+	tcp{
+		host => "192.168.3.204"
+		port => 9250
+		mode => "server"
+		tags => ["tags"]
+		codec => json_lines
+	}
+}
+
+output {
+	stdout { codec => rubydebug }
+	elasticsearch { hosts => "localhost:9200" }
+}
+
+
+
+elasticsearch 插件安装
+/opt/elasticsearch/bin
+https://github.com/medcl/elasticsearch-analysis-ik 分词插件
