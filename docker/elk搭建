@@ -33,3 +33,5 @@ output {
 elasticsearch 插件安装
 /opt/elasticsearch/bin
 https://github.com/medcl/elasticsearch-analysis-ik 分词插件
+./bin/elasticsearch-plugin install https://github.com/medcl/elasticsearch-analysis-ik/releases/download/v6.3.0/elasticsearch-analysis-ik-6.3.0.zip
+./bin/elasticsearch-plugin install https://github.com/medcl/elasticsearch-analysis-ik/releases/download/v6.6.2/elasticsearch-analysis-ik-6.6.2.zip
