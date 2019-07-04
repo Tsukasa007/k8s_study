@@ -3,7 +3,7 @@ https://github.com/kubernetes/dashboard
 观察Getting Started
 
 
-我们先下载下来Service 更改type: NodePort
+我们先下载下来Service 更改type: NodePort(推荐使用下面我整理的)
 
 wget https://raw.githubusercontent.com/kubernetes/dashboard/v1.10.1/src/deploy/recommended/kubernetes-dashboard.yaml
 
@@ -188,6 +188,7 @@ spec:
   ports:
     - port: 443
       targetPort: 8443
+      nodePort: 30001
   selector:
     k8s-app: kubernetes-dashboard
 ```

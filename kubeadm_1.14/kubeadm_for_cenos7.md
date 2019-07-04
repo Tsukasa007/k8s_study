@@ -136,6 +136,7 @@ systemctl start docker
 
 ## 导入kube镜像
 ```bash
+k8s-v1.14.0-rpms.tgz
 链接：https://pan.baidu.com/s/1bFDrSay2B8SFcUL4xcFiLA
 提取码：eo2g
 docker load -i xxxx
@@ -229,3 +230,7 @@ yum install -y bash-completion
  EOF
  source /root/.bash_profile
 ```
+
+
+# 导出所有docker images 
+docker save $(docker images | grep -v REPOSITORY | awk 'BEGIN{OFS=":";ORS=" "}{print $1,$2}') -o k8s1.14.0.tar

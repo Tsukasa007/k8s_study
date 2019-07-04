@@ -1,0 +1,52 @@
+sudo su - root
+
+
+安装epel库
+查询是否已经安装epel库:
+rpm -qa|grep epel
+
+如果 epel库 没有安装，则安装它：
+yum install epel-release
+
+安装xrdp
+安装xrdp服务：
+yum install xrdp
+
+因为Xrdp最终会自动启用VNC，所以必须安装tigervnc-server，否则xrdp无法使用。安装vnc：
+yum install tigervnc-server
+
+为root用户设置VNC密码：
+vncpasswd root
+
+
+修改 xrdp最大连接数（使用默认值，不修改也是可以的） ：vim /etc/xrdp/xrdp.ini （默认是32）：
+
+max_bpp=32
+
+
+关闭防火墙
+这里，我们要确保两台机器可以ping通，能够相互访问。我这里是在局域网内测试，所以我直接关闭防火墙：
+systemctl stop firewalld.service
+
+设置开机不启动防火墙：
+systemctl disable firewalld.servie
+
+关闭SElinux
+SElinux应该关闭它。查看SElinux状态：
+sestatus
+
+如果是临时关闭SElinux：
+setenforce 0
+
+不过，我们要永久关闭SElinux：vim /etc/selinux/config
+SELINUX=disabled
+
+
+
+启动XRDP
+启动xrdp服务：
+
+systemctl start xrdp
+设置xrdp服务 开机自启动 ：
+
+systemctl enable xrdp
