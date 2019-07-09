@@ -26,7 +26,8 @@ kubectl get svc kubernetes-dashboard -n kube-system
 
 
 以下是文件 (直接 vim 也行)
-```yaml
+kubernetes-dashboard.yaml
+```
 # Copyright 2017 The Kubernetes Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -209,4 +210,19 @@ kubectl -n kube-system describe secret $(kubectl -n kube-system get secret | gre
 
 ok!
 
+
+# chrome 可以请求
+mkdir key && cd key
+#生成证书
+openssl genrsa -out dashboard.key 2048 
+openssl req -new -out dashboard.csr -key dashboard.key -subj '/CN=192.168.246.200'
+openssl x509 -req -in dashboard.csr -signkey dashboard.key -out dashboard.crt 
+#删除原有的证书secret
+kubectl delete secret kubernetes-dashboard-certs -n kube-system
+#创建新的证书secret
+kubectl create secret generic kubernetes-dashboard-certs --from-file=dashboard.key --from-file=dashboard.crt -n kube-system
+#查看pod
+kubectl get pod -n kube-system
+#重启pod
+kubectl delete pod <pod name> -n kube-system
 
