@@ -128,11 +128,13 @@ EOF
 ```bash
 systemctl daemon-reload
 systemctl enable docker
-systemctl start docker
+systemctl restart docker
 ```
 
 * 如果启动不了docker 尝试 修改镜像文件为/etc/docker/daemon.json后缀为.conf
-
+```bash
+mv /etc/docker/daemon.json /etc/docker/daemon.conf
+```
 
 ## 导入kube镜像
 ```bash
