@@ -1,0 +1,28 @@
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: liveness-readiness
+  labels:
+    k8s-app: liveness-readiness
+spec:
+  containers:
+    - name: liveness-readiness
+      image: cnych/liveness
+      args:
+        - /server
+      livenessProbe:
+        httpGet:
+          port: 8080
+        timeoutSeconds: 5
+        initialDelaySeconds: 3
+        periodSeconds: 3
+        successThreshold: 3
+      readinessProbe:
+        tcpSocket:
+          port: 8080
+        timeoutSeconds: 5
+        initialDelaySeconds: 3
+        periodSeconds: 3
+        successThreshold: 3
+
