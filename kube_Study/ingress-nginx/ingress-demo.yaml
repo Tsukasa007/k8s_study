@@ -1,0 +1,49 @@
+#deploy
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tomcat-demo
+spec:
+  selector:
+    matchLabels:
+      app: tomcat-demo
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: tomcat-demo
+    spec:
+      containers:
+        - name: tomcat-demo
+          image: registry.cn-hangzhou.aliyuncs.com/liuyi01/tomcat:8.0.51-alpine
+          ports:
+            - containerPort: 8080
+---
+#service
+apiVersion: v1
+kind: Service
+metadata:
+  name: tomcat-demo
+spec:
+  ports:
+    - port: 80
+      protocol: TCP
+      targetPort: 8080
+  selector:
+    app: tomcat-demo
+
+---
+#ingress
+apiVersion:  extensions/v1beta1
+kind: Ingress
+metadata:
+  name: tomcat-demo
+spec:
+  rules:
+    - host: tomcat-demo.tsukasa.pro
+      http:
+        paths:
+          - path: /
+            backend:
+              serviceName: tomcat-demo
+              servicePort: 80
