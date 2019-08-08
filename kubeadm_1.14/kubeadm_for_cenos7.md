@@ -40,6 +40,7 @@ sysctl: cannot stat /proc/sys/net/bridge/bridge-nf-call-ip6tables: 没有那个�
 ######执行下面继续sysctl -p
 ```bash
 modprobe br_netfilter 
+sysctl -p
 ```
 
 
