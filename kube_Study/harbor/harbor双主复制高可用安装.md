@@ -13,7 +13,7 @@ cd harbor && vim harbor.yml
 hostname: 192.168.3.109
 ```
 
-###3.启动
+###3.启动Harbor12345
 ```shell script
 sh install.sh
 ```
