@@ -1,0 +1,24 @@
+
+docker run -p 3306:3306 --name mymysql -v /data/catt/mysql//conf:/etc/mysql/conf.d -v /data/catt/mysql/logs:/logs -v /data/catt/mysql/data:/mysql_data -e MYSQL_ROOT_PASSWORD=Abc123.com -d mysql:5.7
+
+
+进入容器
+
+# docker exec -it mymysql bash
+登陆mysql
+
+root@5524ddca12c1:/# mysql -u root -pAbc123.com
+
+mysql> 
+创建数据库
+
+mysql> create database serviceLog;
+创建用户并授权
+
+mysql> grant all privileges on serviceLog.* to crm@"%" identified by "password" with grant option;
+刷新权限
+
+mysql> flush privileges;
+
+
+

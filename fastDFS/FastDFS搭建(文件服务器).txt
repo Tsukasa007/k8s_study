@@ -1,0 +1,16 @@
+docker search fastdfs
+
+
+docker image pull delron/fastdfs
+
+
+docker run -dti --net host --name tracker -v /data/catt/fastdfs/tracker:/var/fdfs delron/fastdfs tracker
+
+docker run -dti --net host --name storage -e TRACKER_SERVER=192.168.3.100:22122 -v /data/catt/fastdfs/storage:/var/fdfs delron/fastdfs storage
+
+-v 宿主机挂载点:容器路径
+
+
+
+application.yml 修改trackerList 宿主机地址 端口
+启动springBoot  fastdfs项目

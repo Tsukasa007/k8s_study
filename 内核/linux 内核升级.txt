@@ -1,0 +1,48 @@
+CentOS6.9 内核升级
+检查内核当前版本
+导入密钥
+安装yum源
+安装内核
+等待安装完毕
+修改默认启动内核
+重启生效
+
+说明:系统版本 CentOS 6.9 X64
+在CentOS 6.9上安装Docker容器,发现内核版本过低,目前是2.6,操作系统是6.9 x86_64位,因此需要升级内核到3.8及以上稳定版本。
+因为只有64位版本才支持安装,所以需要首先检查系统版本和位数
+
+cat /etc/redhat-release
+getconf LONG_BIT
+CentOS6.9 内核升级
+检查内核当前版本
+首先 uname -a 查看当前
+2.6.32-431.23.3.el6.x86_64 #1 SMP Thu Jul 31 17:20:51 UTC 2014 x86_64 x86_64 x86_64 GNU/Linux
+
+导入密钥
+rpm --import https://www.elrepo.org/RPM-GPG-KEY-elrepo.org
+
+安装yum源
+rpm -Uvh http://www.elrepo.org/elrepo-release-6-8.el6.elrepo.noarch.rpm
+
+安装内核
+yum --enablerepo=elrepo-kernel install kernel-lt -y
+
+等待安装完毕
+提示 Complete! 表示安装完成
+
+修改默认启动内核
+vim /etc/grub.conf
+显示如下信息
+default=0
+timeout=5
+splashimage=(hd0,0)/grub/splash.xpm.gz
+hiddenmenu
+title CentOS (4.4.161-1.el6.elrepo.x86_64) //0
+title CentOS (2.6.32-754.6.3.el6.x86_64) //1
+title CentOS (2.6.32-696.13.2.el6.x86_64) //2
+title CentOS (2.6.32-431.el6.x86_64) //3
+
+default=0 //选择启动第一个内核
+
+重启生效
+重新启动 查看是否生效

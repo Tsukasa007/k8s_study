@@ -106,7 +106,7 @@ yum-config-manager \
  https://download.docker.com/linux/centos/docker-ce.repo
 
 yum makecache fast
-yum install -y docker-ce
+yum -y install docker-ce-18.09.8
 ```
 
 ## 编辑systemctl的Docker启动文件和配置文件
