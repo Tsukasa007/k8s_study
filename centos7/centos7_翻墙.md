@@ -9,8 +9,8 @@ ip注意替换
 vim /etc/profile
 
 
-http_proxy=http://10.1.12.72:1080/
-https_proxy=http://10.1.12.72:1080/
+http_proxy=http://192.168.3.108:1080/
+https_proxy=http://192.168.3.108:1080/
 
 
 :x
