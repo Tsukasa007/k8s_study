@@ -1,0 +1,17 @@
+
+
+vim  /root/.ssh/id_rsa.pubys
+
+
+chmod  600 /root/.ssh/authorized_keys
+
+vim /etc/ssh/sshd_config
+
+
+RSAAuthentication yes       #RSA身份验证:yes开启no关闭
+PubkeyAuthentication yes    #公钥身份验证:yes开启no关闭
+PermitRootLogin yes  		#允许root登录:yes开启no关闭
+PasswordAuthentication no   #密码登录方式:yes开启no关闭
+
+
+systemctl restart sshd

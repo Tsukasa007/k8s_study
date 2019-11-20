@@ -1,0 +1,21 @@
+apiVersion: apps/v1  # API版本
+kind: Deployment  # API对象类型
+metadata:
+  name: nginx-deploy
+  labels:
+    chapter: first-app
+spec:
+  selector:
+    matchLabels:
+      app: nginx
+  replicas: 2  # Pod 副本数量
+  template:  # Pod 模板
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      containers:
+        - name: nginx
+          image: nginx:1.7.9
+          ports:
+            - containerPort: 80
