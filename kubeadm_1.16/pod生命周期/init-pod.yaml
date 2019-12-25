@@ -1,0 +1,27 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: init-demo
+  labels:
+    app: init-demo
+spec:
+  volumes:
+    - name: workdir
+      emptyDir: {}
+  initContainers:
+    - name: install
+      image: busybox
+      command:
+        - wget
+        - "-O"
+        - "/work-dir/index.html"
+        - http://www.baidu.com
+      volumeMounts:
+        - mountPath: "/work-dir"
+          name: workdir
+  containers:
+    - name: init-demo
+      image: nginx
+      imagePullPolicy: IfNotPresent
+      ports:
+        - containerPort: 80

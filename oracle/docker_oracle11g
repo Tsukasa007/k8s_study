@@ -1,0 +1,46 @@
+docker pull registry.cn-hangzhou.aliyuncs.com/helowin/oracle_11g
+
+
+
+docker run -dit -p 8081:8080 -p 1522:1521 --name oracle11g   \
+-v /usr/local/src/oracle:/u01/app/oracle registry.cn-hangzhou.aliyuncs.com/helowin/oracle_11g
+
+
+
+sqlplus /nolog
+
+
+#切换到root 用户下
+su root
+helowin
+
+
+编辑profile
+
+export ORACLE_HOME=/home/oracle/app/oracle/product/11.2.0/dbhome_2
+
+export ORACLE_SID=helowin
+
+export PATH=$ORACLE_HOME/bin:$PATH
+
+
+
+ln -s $ORACLE_HOME/bin/sqlplus /usr/bin
+
+sqlplus /nolog
+
+conn /as sysdba
+
+
+
+alter user system identified by system;
+
+alter user sys identified by sys;
+
+
+也可以创建用户  create user test identified by test;
+
+并给用户赋予权限  grant connect,resource,dba to test;
+
+
+

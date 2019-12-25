@@ -1,0 +1,88 @@
+下载证书
+git clone https://github.com/letsencrypt/letsencrypt
+
+生成证书
+./letsencrypt-auto certonly --standalone --email email@qq.com -d photos-stg.lolatc.com
+
+续证书
+./letsencrypt-auto certonly --renew-by-default --email email@qq.com -d staging.lolatc.com
+
+======================================================
+lola 华为云定时任务实践（目前使用中，推荐使用）
+
+脚本1：ssl_renew.sh
+
+#!/bin/bash
+/opt/nginx/sbin/nginx -s stop
+/usr/local/src/letsencrypt/letsencrypt-auto  renew  --force-renewal > /var/log/letsencrypt/renew.log 
+/opt/nginx/sbin/nginx
+
+
+
+脚本2：nginx_status.sh
+
+#！/bin/bash
+
+netstat -tunlp | grep python | awk '{print $7}' | awk -F "/" '{print $1}' | xargs kill -9
+
+ps xua | grep nginx | grep master >/dev/null 2>&1
+LE_STATUS=$?
+   if [ "$LE_STATUS" != 0 ]; then
+	/opt/nginx/sbin/nginx
+	exit 1
+fi
+
+
+
+定时任务：
+00 6 * * * /usr/sbin/ntpdate time.windows.com &>/dev/null
+10 03 * * * /usr/bin/sh /root/sh/nginx_status.sh
+0 0 * * 0 /usr/bin/sh /root/sh/ssl_renew.sh
+
+
+
+
+=====================================================
+
+每隔两个月续证一次
+
+vim /root/sh/ssl_renew.sh
+
+#!/bin/bash
+/opt/nginx/sbin/nginx -s stop
+/usr/local/src/letsencrypt/letsencrypt-auto  renew  --force-renewal > /var/log/letsencrypt/renew.log 
+/opt/nginx/sbin/nginx
+
+chmod +x /root/sh/ssl_renew.sh
+
+
+每天检查nginx状态
+
+vim /root/sh/nginx_status.sh
+
+#！/bin/bash
+ps xua | grep nginx | grep master >/dev/null 2>&1
+LE_STATUS=$?
+   if [ "$LE_STATUS" != 0 ]; then
+    /opt/nginx/sbin/nginx
+    exit 1
+fi
+
+chmod +x /root/sh/nginx_status.sh
+
+
+
+crontab -e
+0 0 1 */2 * /bin/sh /root/sh/ssl_renew.sh
+10 02 * * * /bin/sh /root/sh/nginx_status.sh
+
+
+ 
+ 
+ 
+撤销证书
+./certbot-auto revoke --cert-path /etc/letsencrypt/archive/域名/cert1.pem
+
+
+
+

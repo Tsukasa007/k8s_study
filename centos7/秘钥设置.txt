@@ -1,5 +1,11 @@
 
 
+centos7.6
+mkdir -p /root/.ssh/
+touch /root/.ssh/authorized_keys
+vim /root/.ssh/authorized_keys
+
+
 vim  /root/.ssh/id_rsa.pubys
 
 

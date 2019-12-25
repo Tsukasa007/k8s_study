@@ -115,13 +115,16 @@ sed -i "13i ExecStartPost=/usr/sbin/iptables -P FORWARD ACCEPT" /usr/lib/systemd
 mkdir -p /etc/docker
 cat > /etc/docker/daemon.json <<EOF
 {
-  "exec-opts": ["native.cgroupdriver=systemd"],
+  "exec-opts": ["native.cgroupdriver=cgroupfs"],
   "log-driver": "json-file",
   "log-opts": {
   "max-size": "100m"
   },
-    "storage-driver": "overlay2"
-  }
+    "storage-driver": "overlay2",
+  "registry-mirrors" : [
+    "https://f698k5mw.mirror.aliyuncs.com"
+  ]
+}
 EOF
 ```
 
