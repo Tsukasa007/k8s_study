@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hpa-demo
+  labels:
+    app: hpa-demo
+spec:
+  replicas: 1
+  template:
+    metadata:
+      name: hpa-demo
+      labels:
+        app: hpa-demo
+    spec:
+      containers:
+        - name: hpa-demo
+          image: nginx
+          imagePullPolicy: IfNotPresent
+          resources:
+            requests:
+              memory: 50Mi
+              cpu: 50m
+  selector:
+    matchLabels:
+      app: hpa-demo
