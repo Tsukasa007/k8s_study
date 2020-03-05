@@ -1,12 +1,8 @@
 docker run -d --hostname rabbitmq \
 --name rabbitmq \
--e RABBITMQ_DEFAULT_USER=dfaslfjs \
--e RABBITMQ_DEFAULT_PASS=123456  \
--p 4369:4369 \
--p 5671:5671 \
+-e RABBITMQ_DEFAULT_USER=admin \
+-e RABBITMQ_DEFAULT_PASS=admin  \
 -p 5672:5672 \
--p 15671:15671 \
 -p 15672:15672 \
--p 25672:25672 \
--v /data/dockerrabbitmqdata/rabbitmq/data:/var/lib/rabbitmq \
-rabbitmq:3.6.10-management
+-v /data/catt/rabbitmq/data/rabbitmq/data:/var/lib/rabbitmq \
+rabbitmq:3.7-management

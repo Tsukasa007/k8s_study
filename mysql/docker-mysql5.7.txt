@@ -1,13 +1,13 @@
 
-docker run -p 3306:3306 --name mymysql -v /data/catt/mysql//conf:/etc/mysql/conf.d -v /data/catt/mysql/logs:/logs -v /data/catt/mysql/data:/mysql_data -e MYSQL_ROOT_PASSWORD=Abc123.com -d mysql:5.7
+docker run -p 3306:3306 --name mysql5.7 -v /data/catt/mysql/conf:/etc/mysql/conf.d -v /data/catt/mysql/logs:/logs -v /data/catt/mysql/data:/mysql_data -e MYSQL_ROOT_PASSWORD=123456 -d mysql:5.7
 
 
 进入容器
 
-# docker exec -it mymysql bash
+# docker exec -it mysql5.7 bash
 登陆mysql
 
-root@5524ddca12c1:/# mysql -u root -pAbc123.com
+root@5524ddca12c1:/# mysql -u root -p123456
 
 mysql> 
 创建数据库
