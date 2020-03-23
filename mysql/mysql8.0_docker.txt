@@ -11,14 +11,15 @@ docker pull mysql
 复制代码
 docker run \
     -p 3306:3306 \
-    -e MYSQL_ROOT_PASSWORD=123456 \
-    -v /home/data/mysql/data:/var/lib/mysql:rw \
-    -v /home/data/mysql/log:/var/log/mysql:rw \
-    -v /home/data/mysql/config/my.cnf:/etc/mysql/my.cnf:rw \
+    -e MYSQL_ROOT_PASSWORD=82825298 \
+    -v /usr/local/mysql/data:/var/lib/mysql:rw \
+    -v /usr/local/mysql/log:/var/log/mysql:rw \
+    -v /usr/local/mysql/config/my.cnf:/etc/mysql/my.cnf:rw \
     -v /etc/localtime:/etc/localtime:ro \
     --name mysql8 \
     --restart=always \
     -d mysql
+
 复制代码
 提前要在提定的位置（我的位置是：/home/data）创建以下文件夹或文件：
 
@@ -30,7 +31,7 @@ mysql/config/my.cnf 是数据库的配置文件，在下面会放出来。
 
 　default_authentication_plugin= mysql_native_password （这个是因应mysql8的安全机制升级而需要修改的配置，不配置的话将无法登录管理）
 
-复制代码
+复制代码  my.cnf
 # Copyright (c) 2017, Oracle and/or its affiliates. All rights reserved.
 #
 # This program is free software; you can redistribute it and/or modify
@@ -78,6 +79,13 @@ default_authentication_plugin= mysql_native_password
 mysql> ALTER USER 'root'@'%' IDENTIFIED WITH mysql_native_password BY '123456';
 
 
+
+
+Navicat
+ALTER USER 'root'@'localhost' IDENTIFIED BY 'password' PASSWORD EXPIRE NEVER;
+
+ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY 'password';
+FLUSH PRIVILEGES;
 
 
 
