@@ -1,0 +1,9 @@
+docker run -d -p 8080:80 -p 3316:3306 -e USER="admin" -e PASSWD="123456" -e BIND_ADDRESS="false" -e SMTP_HOST="163.177.90.125 smtp.exmail.qq.com" -v /data/zbox/:/opt/zbox/ --name zentao-server idoop/zentao:latest
+
+
+8080 访问禅道外部端口号
+3316 把容器3306数据库端口映射到主机3316端口
+USER 设置登录账号 admin
+PASSWD 设置登录密码 123456
+BIND_ADDRESS 设置为false
+访问http://ip:8080/ 即可访问禅道首页
