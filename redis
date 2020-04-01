@@ -1,2 +1,2 @@
-docker run -it --name redis -v /usr/local/redis/redisdata/:/data -p 6379:6379 -d redis:4.0.2 redis-server --appendonly yes
-docker run -it --name redis -v /usr/local/redis/redisdata/:/data -p 6379:6379 -d redis redis-server --appendonly yes
+docker run -it --name redis -v /usr/local/redis/redis/data/:/data -p 6379:6379 -d redis:4.0.2 redis-server --appendonly yes
+docker run -it --name redis -v /usr/local/redis/redis/data/:/data -p 6379:6379 -d redis redis-server --appendonly yes

@@ -1,8 +1,9 @@
-docker run -d --hostname rabbitmq \
+docker run -d -m 512M --hostname rabbitmq \
 --name rabbitmq \
 -e RABBITMQ_DEFAULT_USER=admin \
 -e RABBITMQ_DEFAULT_PASS=admin  \
 -p 5672:5672 \
 -p 15672:15672 \
 -v /usr/local/rabbitmq/data/rabbitmq/data:/var/lib/rabbitmq \
+--restart=always \
 rabbitmq:3.7-management
