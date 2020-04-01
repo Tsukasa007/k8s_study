@@ -1,0 +1,14 @@
+docker run -d -m 512M \
+-e MODE=standalone \
+-e SPRING_DATASOURCE_PLATFORM=mysql \
+-e MYSQL_MASTER_SERVICE_HOST=txyun.tsukasa.pro \
+-e MYSQL_MASTER_SERVICE_PORT=3306 \
+-e MYSQL_MASTER_SERVICE_USER=root \
+-e MYSQL_MASTER_SERVICE_PASSWORD=82825298 \
+-e MYSQL_MASTER_SERVICE_DB_NAME=nacos_config \
+-e MYSQL_SLAVE_SERVICE_HOST=txyun.tsukasa.pro \
+-e MYSQL_SLAVE_SERVICE_PORT=3306 \
+-p 8848:8848 \
+--restart=always \
+--name nacos \
+f00lisher/nacos-server-mysql8:1.1.4
