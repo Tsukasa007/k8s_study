@@ -1,11 +1,13 @@
 docker run -d -m 128M --name=seata seataio/seata-server:1.0.0 \
--e SEATA_IP=alnps.tsukasa.pro \
+-e SEATA_IP=txyun.tsukasa.pro \
 --name seata \
 --net host	\
+--restart=always \
 seataio/seata-server:1.0.0
 
 	docker cp /usr/local/seata/libs seata:/seata-server
    docker cp /usr/local/seata/registry.conf seata:/seata-server/resources
+
 
 
 docker run -d -m 128M --hostname rabbitmq \
