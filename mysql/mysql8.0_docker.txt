@@ -19,6 +19,19 @@ docker run \
     --name mysql8 \
     --restart=always \
     -d mysql:8.0.19
+
+
+    docker run \
+        -p 3306:3306 \
+        -e MYSQL_ROOT_PASSWORD=123456 \
+        -v /home/mysql/data:/var/lib/mysql:rw \
+        -v /home/mysql/log:/var/log/mysql:rw \
+        -v /home/mysql/config/my.cnf:/etc/mysql/my.cnf:rw \
+        -v /etc/localtime:/etc/localtime:ro \
+        --name mysql8 \
+        --restart=always \
+        -d mysql:8.0.19
+
 复制代码
 提前要在提定的位置（我的位置是：/home/data）创建以下文件夹或文件：
 

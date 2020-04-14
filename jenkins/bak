@@ -1,0 +1,23 @@
+docker run -d \
+--name jenkins  \
+-p 8081:8080  \
+-v /home/jenkins_home:/var/jenkins_home \
+jenkins/jenkins:lts
+
+
+docker run \
+-d  --name jenkins \
+-p 8081:8080 \
+-v /usr/bin/docker:/usr/bin/docker \
+-v /var/run/docker.sock:/var/run/docker.sock \
+/home/jenkins_home:/var/jenkins_home    \
+jenkins/jenkins:1.0
+
+
+docker run -d \
+                   --name jenkins  \
+                   -p 8081:8080  \
+                   -v /home/jenkins_home:/var/jenkins_home \
+                   -v /usr/bin/docker:/usr/bin/docker \
+                   -v /var/run/docker.sock:/var/run/docker.sock \
+                   jenkins/jenkins:1.0

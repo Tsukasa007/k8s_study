@@ -12,7 +12,7 @@ $ vim /etc/docker/daemon.json
 添加 "graph":"YOUR_PATH", 便可
 {
   "storage-driver": "overlay2",
-  "graph":"/data/docker",
+  "graph":"/home/docker",
   "storage-opts": [
     "overlay2.override_kernel_check=true"
   ]
