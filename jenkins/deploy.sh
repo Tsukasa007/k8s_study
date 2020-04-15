@@ -21,7 +21,7 @@ jenkins_jar_path='/var/jenkins_home/workspace'
 # 构建镜像路径
 projects_path='/var/jenkins_home/docker_images/'
 Mounts=${Mounts}
-data=`date '+%Y%m%d%H%M%S'`
+
 # 停止删除容器
 {
 sudo docker stop ${app_name}
@@ -43,10 +43,8 @@ sudo docker login --username=admin --password=harbor http://${harbor_registry}
 sudo docker build -t ${image_prefix}/${app_name}:${maven_version} -f ${projects_path}${app_name}/Dockerfile ${projects_path}${app_name}/.
 
 sudo docker tag ${image_prefix}/${app_name}:${maven_version} ${harbor_registry}/${image_prefix}/${app_name}:${version}
-sudo docker push ${harbor_registry}/${image_prefix}/${app_name}:${version}
 
-sudo docker tag ${image_prefix}/${app_name}:${maven_version} ${harbor_registry}/${image_prefix}/${app_name}:${data}
-sudo docker push ${harbor_registry}/${image_prefix}/${app_name}:${data}
+sudo docker push ${harbor_registry}/${image_prefix}/${app_name}:${version}
 
 sudo docker rmi `sudo docker images|grep none | awk '{print $3}'`
 sudo docker rmi ${image_prefix}/${app_name}:${maven_version}
