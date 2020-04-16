@@ -22,6 +22,8 @@ jenkins_jar_path='/var/jenkins_home/workspace'
 projects_path='/var/jenkins_home/docker_images/'
 Mounts=${Mounts}
 
+data=`date '+%Y%m%d%H%M%S'`
+
 # 停止删除容器
 {
 sudo docker stop ${app_name}
