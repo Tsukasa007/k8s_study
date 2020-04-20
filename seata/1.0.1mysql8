@@ -1,5 +1,5 @@
-docker run -d -m 128M --name=seata seataio/seata-server:1.0.0 \
--e SEATA_IP=txyun.tsukasa.pro \
+docker run -d -m 512M --name=seata seataio/seata-server:1.0.0 \
+-e SEATA_IP=192.168.0.112 \
 --name seata \
 --net host	\
 --restart=always \

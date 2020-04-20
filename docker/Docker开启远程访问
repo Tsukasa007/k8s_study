@@ -1,7 +1,7 @@
 1、Docker开启远程访问
 
 [root@izwz9eftauv7x69f5jvi96z docker]# vim /lib/systemd/system/docker.service
-#修改ExecStart这行
+#修改ExecStart这行  原来:ExecStart=/usr/bin/dockerd -H tcp://0.0.0.0:2375 -H unix:///var/run/docker.sock -H tcp://0.0.0.0:7654
 ExecStart=/usr/bin/dockerd  -H tcp://0.0.0.0:2375  -H unix:///var/run/docker.sock
 
 
