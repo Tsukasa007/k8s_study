@@ -59,7 +59,8 @@ pipeline {
                 echo "准备docker部署"
                 dir("${PACKAGE}/${PROJECT}-${MODULE_SUFFIX}") {
                     sh 'pwd'
-                    sh 'sudo docker build --build-arg JAR_FILE=target/${PROJECT}-${MODULE_SUFFIX}.jar -t ${PROJECT}/${MODULE_SUFFIX}:${TIME} .'
+//                    sh "sed -i 's/NACOS_DISCOVERY_PORT/${MO.split(';')[1].split(':')[0]}/' Dockerfile"
+                    sh "sudo docker build --build-arg JAR_FILE=target/${PROJECT}-${MODULE_SUFFIX}.jar --build-arg NACOS_DISCOVERY_IP=192.168.0.112 --build-arg NACOS_DISCOVERY_PORT=${MO.split(';')[1].split(':')[0]} -t ${PROJECT}/${MODULE_SUFFIX}:${TIME} ."
                     sh 'sudo docker tag ${PROJECT}/${MODULE_SUFFIX}:${TIME} ${HARBOR_REGISTRY}/${PROJECT}/${MODULE_SUFFIX}:${TIME}'
                     sh 'sudo docker push ${HARBOR_REGISTRY}/${PROJECT}/${MODULE_SUFFIX}:${TIME}'
                     sh 'sudo docker rmi "sudo docker images | grep none | awk `{print $3}`" 1>/dev/null 2>&1 | exit 0'
@@ -75,7 +76,11 @@ pipeline {
                 dir("${PACKAGE}") {
                     sh 'sudo docker run -idt --name ${PROJECT}-${MODULE_SUFFIX} --restart=always -m 512M \\\n' +
                             '        -v /home/${PROJECT}-${MODULE_SUFFIX}/:/data/projects \\\n' +
-                            '        -p $PORT:$PORT \\\n' +
+                            '        -p $PORT \\\n' +
+                            // '        --net host' +
+                            '        -e NACOS_DISCOVERY_IP=192.168.0.112 \\\n' +
+                            "        -e NACOS_DISCOVERY_PORT=${MO.split(';')[1].split(':')[0]} \\\n" +
+                            '        -e LOCAL_IP=192.168.0.112' +
                             '        -e NACOS_IP=${NACOS_IP} \\\n' +
                             '        -e NACOS_PORT=${NACOS_PORT} \\\n' +
                             '        -e NACOS_ID=${NACOS_ID} \\\n' +
