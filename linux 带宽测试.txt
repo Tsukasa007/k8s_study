@@ -1,0 +1,24 @@
+wget https://raw.githubusercontent.com/sivel/speedtest-cli/master/speedtest.py
+
+# chmod +rx speedtest.py
+
+# sudo mv speedtest.py /usr/local/bin/speedtest-cli
+
+# sudo chown root:root /usr/local/bin/speedtest-cli
+
+
+
+使用speedtest-cli测试网速
+
+使用speedtest-cli命令也很简单，它不需要任何参数即可工作。
+
+
+
+# speedtest-cli
+
+输入这个命令后，它会自动发现离你最近的Speedtest.net服务器（地理距离），然后打印出测试的网络上/下行速率。
+
+speedtest-cli --bytes以字节计算的方式来测试上下行速度
+speedtest-cli --share将速度测试的结果生成一张图片的连接，便于你分享
+speedtest-cli --simple只显示ping和上下行速度
+speedtest-cli --list 列出speedtest.net所有的服务器距离你的物理距离，单位是千米（km）
