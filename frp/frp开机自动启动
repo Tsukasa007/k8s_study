@@ -1,0 +1,67 @@
+在服务器端使用 Systemd 管理 frps
+# 需要先 cd 到 frp 解压目录.
+
+# 复制文件
+cp frps /usr/local/bin/frps
+mkdir /etc/frp
+cp frps.ini /etc/frp/frps.ini
+
+# 编写 frp service 文件，以 ubuntu 为例
+vim /usr/lib/systemd/system/frps.service (有时候需要手动创建system文件夹)
+# 内容如下
+[Unit]
+Description=frps
+After=network.target
+
+[Service]
+TimeoutStartSec=30
+ExecStart=/usr/local/bin/frps -c /etc/frp/frps.ini
+ExecStop=/bin/kill $MAINPID
+
+[Install]
+WantedBy=multi-user.target
+
+# 启动 frp 并设置开机启动
+systemctl enable frps
+systemctl start frps
+systemctl status frps
+
+# 部分服务器上,可能需要加 .service 后缀来操作,即:
+systemctl enable frps.service
+systemctl start frps.service
+systemctl status frps.service
+在客户端使用 Systemd 管理 frpc
+# 需要先 cd frp 解压目录.
+
+# 复制文件
+cp frpc /usr/local/bin/frpc
+mkdir /etc/frp
+cp frpc.ini /etc/frp/frpc.ini
+
+# 编写 frp service 文件，以 centos7 为例,适用于 debian
+vim /usr/lib/systemd/system/frpc.service
+# 内容如下
+[Unit]
+Description=frpc
+After=network.target
+
+[Service]
+TimeoutStartSec=30
+ExecStart=/usr/local/bin/frpc -c /etc/frp/frpc.ini
+ExecStop=/bin/kill $MAINPID
+
+[Install]
+WantedBy=multi-user.target
+
+# 启动 frp 并设置开机启动
+systemctl enable frpc
+systemctl start frpc
+systemctl status frpc
+
+# 部分服务器上,可以需要加 .service 后缀来操作,即:
+systemctl enable frpc.service
+systemctl start frpc.service
+systemctl status frpc.service
+Note:
+注意:frps 或 frpc 启动无效时,可以尝试先停止服务。比如:
+systemctl stop frpc
