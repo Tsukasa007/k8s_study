@@ -1,0 +1,14 @@
+docker run --name gzhqt -m 512M \
+-p 80:80 \
+-p 443:443 \
+-v /etc/nginx/cert:/etc/nginx/cert  \
+-v /etc/localtime:/etc/localtime    \
+-v /home/gzh/html/gzhqt:/root/gzhqt \
+-v /home/gzh/html/manage:/root/manage \
+-v /home/gzh/nginx.conf:/etc/nginx/nginx.conf \
+-e TZ=Asia/Shanghai \
+--add-host server01:35.241.113.78  \
+-dit nginx:alpine
+
+
+

@@ -1,0 +1,8 @@
+docker run -dit  --restart=always \
+--name reservation \
+-m 512m  \
+-p 8080:8080  \
+-v /etc/localtime:/etc/localtime:ro \
+-v /home/reservation/reservation:/home/reservation \
+-v /home/reservation/server.xml:/usr/local/soft/tomcat/conf/server.xml \
+donglsheng/tomcat9_jdk8
