@@ -36,3 +36,22 @@ vim ~/.zshrc
 中加入插件的名字
 plugins=( [plugins...] zsh-syntax-highlighting)
 生效source ~/.zshrc 或是重启终端
+
+
+历史记录建议插件 zsh-autosuggestions
+下载
+git clone git://github.com/zsh-users/zsh-autosuggestions $ZSH_CUSTOM/plugins/zsh-autosuggestions
+
+配置
+vim ~/.zshrc
+
+在配置中添加插件名字：
+
+plugins=( [plugins...] zsh-autosuggestions)
+
+修改完成之后需要运行：
+source ~/.zshrc
+
+
+
+
