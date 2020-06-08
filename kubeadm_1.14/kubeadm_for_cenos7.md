@@ -230,7 +230,7 @@ yum install -y bash-completion
  locate bash_completion
  source /usr/share/bash-completion/bash_completion
  source <(kubectl completion bash)
-   cat << EOF >> /root/.bash_profile
+cat << EOF >> /root/.bash_profile
  source /usr/share/bash-completion/bash_completion
  source <(kubectl completion bash)
  EOF

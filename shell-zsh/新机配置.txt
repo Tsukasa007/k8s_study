@@ -1,0 +1,38 @@
+先看下你的 Linux支持哪些 shell：cat /etc/shells，正常结果应该是这样的：
+/bin/sh
+/bin/bash
+/sbin/nologin
+/bin/dash
+/bin/tcsh
+/bin/csh
+
+
+CentOS 安装：sudo yum install -y zsh
+Ubuntu 安装：sudo apt-get install -y zsh
+在检查下系统的 shell：cat /etc/shells，你会发现多了一个：/bin/zsh
+
+
+
+使用 Zsh 扩展集合：oh-my-zsh
+oh-my-zsh 帮我们整理了一些常用的 Zsh 扩展功能和主题：https://github.com/robbyrussell/oh-my-zsh
+我们无需自己去捣搞 Zsh，直接用 oh-my-zsh 就足够了，如果你想继续深造的话那再去弄。
+先安装 git：sudo yum install -y git
+安装 oh-my-zsh（这个过程可能会有点慢，或者需要重试几次）：wget https://raw.github.com/robbyrussell/oh-my-zsh/master/tools/install.sh -O - | sh
+
+
+
+
+在以 root 用户为前提下，oh-my-zsh 的安装目录：/root/.oh-my-zsh
+在以 root 用户为前提下，Zsh 的配置文件位置：/root/.zshrc
+为 root 用户设置 zsh 为系统默认 shell：chsh -s /bin/zsh root
+如果你要重新恢复到 bash：chsh -s /bin/bash root
+现在你关掉终端或是重新连上 shell，现在开头是一个箭头了
+
+
+
+命令语法亮度插件zsh-syntax-highlighting
+git clone https://github.com/zsh-users/zsh-syntax-highlighting.git ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-syntax-highlighting
+vim ~/.zshrc
+中加入插件的名字
+plugins=( [plugins...] zsh-syntax-highlighting)
+生效source ~/.zshrc 或是重启终端
