@@ -23,7 +23,7 @@ docker run \
 
     docker run \
         -p 3306:3306 \
-        -e MYSQL_ROOT_PASSWORD=123456 \
+        -e MYSQL_ROOT_PASSWORD=82825298 \
         -v /home/mysql/data:/var/lib/mysql:rw \
         -v /home/mysql/log:/var/log/mysql:rw \
         -v /home/mysql/config/my.cnf:/etc/mysql/my.cnf:rw \
@@ -88,15 +88,15 @@ default_authentication_plugin= mysql_native_password
 
 # mysql -uroot -p
 
-mysql> ALTER USER 'root'@'%' IDENTIFIED WITH mysql_native_password BY '123456';
+mysql> ALTER USER 'root'@'%' IDENTIFIED WITH mysql_native_password BY '82825298';
 
 
 
 
 Navicat
-ALTER USER 'root'@'localhost' IDENTIFIED BY 'password' PASSWORD EXPIRE NEVER;
+ALTER USER 'root'@'localhost' IDENTIFIED BY '82825298' PASSWORD EXPIRE NEVER;
 
-ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY 'password';
+ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY '82825298';
 FLUSH PRIVILEGES;
 
 
@@ -106,3 +106,13 @@ FLUSH PRIVILEGES;
 
 
 docker run -p 3306:3306 -e MYSQL_ROOT_PASSWORD=123456 -v /usr/local/mysql/data:/var/lib/mysql:rw -v /usr/local/mysql/mysql-files:/var/lib/mysql-files:rw -v /usr/local/mysql/log:/var/log/mysql:rw -v /usr/local/mysql/config:/etc/mysql:rw -v /etc/localtime:/etc/localtime:ro --name mysql --restart=always -d mysql:8.0.16
+
+
+
+docker run -dit --name nginx \
+-v /home/nginx/conf.d/default.conf:/etc/nginx/conf.d/default.conf  \
+-v /home/nginx/html:/usr/share/nginx/html  \
+-v /home/nginx/picture:/usr/share/nginx/picture  \
+-v /home/nginx/log:/var/log/nginx  \
+-p 8082:80 \
+ nginx:1.17.6

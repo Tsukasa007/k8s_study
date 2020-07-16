@@ -118,7 +118,8 @@ cat > /etc/docker/daemon.json <<EOF
   "exec-opts": ["native.cgroupdriver=cgroupfs"],
   "log-driver": "json-file",
   "log-opts": {
-  "max-size": "100m"
+  "max-size": "100m",
+  "max-file":"3"
   },
     "storage-driver": "overlay2",
   "registry-mirrors" : [
