@@ -1,0 +1,5 @@
+yum install -y axel
+
+axel -n 20 http://mirror.sfo12.us.leaseweb.net/centos/7.6.1810/isos/x86_64/CentOS-7-x86_64-Minimal-1810.iso
+
+
