@@ -24,9 +24,9 @@ docker run \
     docker run \
         -p 3306:3306 \
         -e MYSQL_ROOT_PASSWORD=82825298 \
-        -v /home/mysql/data:/var/lib/mysql:rw \
-        -v /home/mysql/log:/var/log/mysql:rw \
-        -v /home/mysql/config/my.cnf:/etc/mysql/my.cnf:rw \
+        -v /Library/mysql/data:/var/lib/mysql:rw \
+        -v /Library/mysql/log:/var/log/mysql:rw \
+        -v /Library/mysql/config/my.cnf:/etc/mysql/my.cnf:rw \
         -v /etc/localtime:/etc/localtime:ro \
         --name mysql8 \
         --restart=always \

@@ -1,0 +1,57 @@
+apiVersion: traefik.containo.us/v1alpha1
+kind: Middleware
+metadata:
+  name: redirect-https
+  namespace: kube-system
+spec:
+  redirectScheme:
+    scheme: https
+
+---
+
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: traefik-dashboard
+  namespace: kube-system
+spec:
+  entryPoints:
+  - web
+  routes:
+  - match: Host(`traefik.qikqiak.com`)
+    kind: Rule
+    services:
+    - name: api@internal
+      kind: TraefikService
+    middlewares: 
+    - name: redirect-https
+
+---
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: traefik-dashboard-tls
+  namespace: kube-system
+spec:
+  entryPoints:
+  - websecure
+  routes:
+  - match: Host(`traefik.qikqiak.com`)
+    kind: Rule
+    services:
+    - name: api@internal
+      kind: TraefikService
+  tls:
+    certResolver: ali
+    domains:
+    - main: "*.qikqiak.com"
+  # tls:
+  #   secretName: who-tls
+# ---
+# apiVersion: traefik.containo.us/v1alpha1
+# kind: Middleware
+# metadata:
+#   name: auth
+# spec:
+#   basicAuth:
+#     secret: secretName # Kubernetes secret named "secretName"
