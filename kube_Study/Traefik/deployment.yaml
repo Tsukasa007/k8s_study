@@ -53,16 +53,16 @@ spec:
         - --experimental.pilot.token=81aaa5f4-54ac-45e5-91a4-d567c3a4bb8e
         # - --providers.file.filename=/config/traefik-tls.toml
         # 使用 dns 验证方式
-        - --certificatesResolvers.ali.acme.dnsChallenge.provider=alidns
+        #- --certificatesResolvers.ali.acme.dnsChallenge.provider=alidns
         # 邮箱配置
-        - --certificatesResolvers.ali.acme.email=ych_1024@163.com
+        #- --certificatesResolvers.ali.acme.email=ych_1024@163.com
         # 保存 ACME 证书的位置
-        - --certificatesResolvers.ali.acme.storage=/etc/acme/acme.json
+        #- --certificatesResolvers.ali.acme.storage=/etc/acme/acme.json
         # 下面是用于测试的ca服务，如果https证书生成成功了，则移除下面参数
         # - --certificatesresolvers.ali.acme.caserver=https://acme-staging-v02.api.letsencrypt.org/directory
-        envFrom:
-        - secretRef:
-            name: traefik-alidns-secret
+        #envFrom:
+        #- secretRef:
+        #    name: traefik-alidns-secret
             # ALICLOUD_ACCESS_KEY
             # ALICLOUD_SECRET_KEY
             # ALICLOUD_REGION_ID
@@ -105,5 +105,5 @@ spec:
           periodSeconds: 10
           successThreshold: 1
           timeoutSeconds: 2
-        
-      
+
+

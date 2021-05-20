@@ -48,7 +48,7 @@ ENTRYPOINT [ "/usr/share/tomcat8/bin/catalina.sh", "run" ]
 
 构建及运行
 docker build -t jamtur01/tomcat8 .
-docker run --name sample_app --volumes-from sample -d -P jamtur01/tomcat7 
+docker run --name sample_app --volumes-from sample -d -P jamtur01/tomcat7
 =================================================
 
 

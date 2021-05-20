@@ -23,8 +23,8 @@ spec:
     services:
     - name: api@internal
       kind: TraefikService
-    middlewares: 
-    - name: redirect-https
+#    middlewares:
+#    - name: redirect-https
 
 ---
 apiVersion: traefik.containo.us/v1alpha1

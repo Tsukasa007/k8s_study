@@ -109,6 +109,9 @@ yum makecache fast
 yum -y install docker-ce-18.09.7
 ```
 
+docker run -itd --name ttnode --network bridge-host --ip=192.168.1.199 --privileged=true --restart=always -v /usr/bin/qemu-aarch64-static:/usr/bin/qemu-aarch64-static orangeqiu/ttnode:latest /start.sh
+
+
 ## 编辑systemctl的Docker启动文件和配置文件
 ```bash
 sed -i "13i ExecStartPost=/usr/sbin/iptables -P FORWARD ACCEPT" /usr/lib/systemd/system/docker.service
@@ -121,7 +124,7 @@ cat > /etc/docker/daemon.json <<EOF
   "max-size": "100m",
   "max-file":"3"
   },
-    "storage-driver": "overlay2",
+    "storage-driver": "overlay2",∂
   "registry-mirrors" : [
     "https://f698k5mw.mirror.aliyuncs.com"
   ]
