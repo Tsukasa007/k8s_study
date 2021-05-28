@@ -1,0 +1,5 @@
+#free DNS
+https://freedns.afraid.org/
+
+#free SSL
+https://freessl.org/
