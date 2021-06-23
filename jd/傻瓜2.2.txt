@@ -1,0 +1,22 @@
+cd /usr/local/src/
+
+git clone https://github.com/Tsukasa007/qinglong.git
+
+cd qinglong/docker
+
+chmod 777 build.sh
+
+sh build.sh
+
+docker run -dit \
+-v /usr/local/src/ql/config:/ql/config  \
+-v /usr/local/src/ql/log:/ql/log    \
+-v /usr/local/src/ql/db:/ql/db  \
+-p 5700:5700    \
+-e ENABLE_HANGUP=ture   \
+-e ENABLE_WEB_PANEL=true    \
+--name qinglong \
+--hostname qinglong \
+--restart always \
+tsukasa007/qinglong:2.2.0
+
