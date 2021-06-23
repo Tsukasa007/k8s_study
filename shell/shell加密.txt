@@ -1,0 +1,26 @@
+yum -y install shc
+
+shc -v -f welcome.sh
+welcome.sh 是原始的未加密shell脚本
+welcome.sh.x 是二进制格式的加密shell脚本
+welcome.sh.x.c 是welcome.sh文件的C源代码。编译该C源代码以创建上面的加密的welcome.sh.x文件。
+
+
+
+
+
+
+wget https://github.com/neurobin/shc/archive/3.9.3.zip
+安装
+unzip 3.9.3.zip
+cd shc-3.9.3/
+./configure
+make
+make install
+如果提示没有unzip，则运行
+
+yum install zip unzip
+测试
+测试一下是否安装成功
+
+shc -v

@@ -1,0 +1,137 @@
+35 1,22 * * * jd jd_nzmh
+
+#京东极速版红包(活动时间：2021-5-5至2021-5-31)
+45 0,23 * * * jd jd_speed_redpocke
+
+#超级直播间红包雨(活动时间不定期，出现异常提示请忽略。红包雨期间会正常)
+1,31 0-23/1 * * * jd jd_live_redrain
+
+#每日抽奖(活动时间：2021-05-01至2021-05-31)
+13 1,22,23 * * * jd jd_daily_lottery
+
+#手机狂欢城
+0 0,12,18,21 * * * jd jd_carnivalcity
+#618动物联萌
+0 */2 * * * jd jd_zoo
+#618动物联萌专门收集金币(每小时的第30分运行一次)
+20,40 * * * * jd jd_zooCollect
+20,40 * * * * jd jd_zooC
+#家电星推官 活动时间：2021年5月27日 00:00:00-2021年6月18日 23:59:59
+0 0 * * * jd jd_xtg
+#家电星推官好友互助 活动时间：2021年5月27日 00:00:00-2021年6月18日 23:59:59
+0 0 * * * jd jd_xtg_help
+#金榜创造营 活动时间：2021-05-21至2021-12-31
+0 1,22 * * * jd jd_gold_creator
+#5G超级盲盒(活动时间：2021-06-2到2021-07-31)
+0 0-23/4 * * * jd jd_mohe
+#明星小店(星店长，2021-06-10)
+0 1,21 * * * jd jd_star_shop
+#新潮品牌狂欢（6.18过期）
+20 1,21 * * * jd jd_mcxhd
+#京喜领88元红包(6.31到期)
+30 1,6,12,21 * * * jd jd_jxlhb
+#省钱大赢家之翻翻乐
+10,40 * * * * jd jd_big_winner
+##############长期活动##############
+# 签到
+7 0,17 * * * cd jd  jd_bean_sign
+# 东东超市兑换奖品
+0,30 0 * * * jd jd_blueCoin
+# 摇京豆
+6 0,23 * * * jd jd_club_lottery
+# 东东农场
+15 6-18/6 * * * jd jd_fruit
+# 宠汪汪
+45 */2,23 * * * jd jd_joy
+# 宠汪汪积分兑换京豆
+0 0-16/8 * * * jd jd_joy_reward
+# 宠汪汪喂食
+35 */1 * * * jd jd_joy_feedPets
+# 宠汪汪邀请助力
+10 13-20/1 * * * jd jd_joy_run
+# 摇钱树
+23 */2 * * * jd jd_moneyTree
+# 东东萌宠
+35 6-18/6 * * * jd jd_pet
+# 京东种豆得豆
+10 7-22/1 * * * jd jd_plantBean
+# 京东全民开红包
+12 0-23/4 * * * jd jd_redPacket
+# 进店领豆
+6 0 * * * jd jd_shop
+# 东东超市
+31 0,1-23/2 * * * jd jd_superMarket
+# 取关京东店铺商品
+45 23 * * * jd jd_unsubscribe
+# 京豆变动通知
+20 10 * * * jd jd_bean_change
+# 京东抽奖机
+0 0,12,23 * * * jd jd_lotteryMachine
+# 京东排行榜
+21 9 * * * jd jd_rankingList
+# 天天提鹅
+28 * * * * jd jd_daily_egg
+# 金融养猪
+32 0-23/6 * * * jd jd_pigPet
+# 点点券
+40 0,20 * * * jd jd_necklace
+# 京喜工厂
+50 * * * * jd jd_dreamFactory
+# 东东小窝
+46 6,23 * * * jd jd_small_home
+# 东东工厂
+26 * * * * jd jd_jdfactory
+# 赚京豆(微信小程序)
+12 * * * * jd jd_syj
+# 京东快递签到
+47 1 * * * jd jd_kd
+# 京东汽车(签到满500赛点可兑换500京豆)
+0 0 * * * jd jd_car
+# 领京豆额外奖励(每日可获得3京豆)
+23 1,12,22 * * * jd jd_bean_home
+# 微信小程序京东赚赚
+6 0-5/1,11 * * * jd jd_jdzz
+# crazyJoy自动每日任务
+30 7,23 * * * jd jd_crazy_joy
+# 京东汽车旅程赛点兑换金豆
+0 0 * * * jd jd_car_exchange
+# 导到所有互助码
+23 7 * * * jd jd_get_share_code
+# 口袋书店
+38 8,12,18 * * * jd jd_bookshop
+# 京喜农场
+30 9,12,18 * * * jd jd_jxnc
+# 签到领现金
+10 */4 * * * jd jd_cash
+# 闪购盲盒
+47 8,22 * * * jd jd_sgmh
+# 京东秒秒币
+10 6,21 * * * jd jd_ms
+#美丽研究院
+41 7,12,19 * * * jd jd_beauty
+#京东保价
+#41 0,23 * * * jd jd_price
+#京东极速版签到+赚现金任务
+21 1,6 * * * jd jd_speed_sign
+#监控crazyJoy分红
+10 12 * * * jd jd_crazy_joy_bonus
+#京喜财富岛
+5 7,12,18 * * * jd jd_cfd
+# 删除优惠券(默认注释，如需要自己开启，如有误删，已删除的券可以在回收站中还原，慎用)
+#20 9 * * 6 jd jd_delCoupon
+#家庭号
+10 6,7 * * * jd jd_family
+#京东直播（又回来了）
+30-50/5 12,23 * * * jd jd_live
+#京东健康社区
+13 1,6,22 * * * jd jd_health
+#京东健康社区收集健康能量
+5-45/20 * * * * jd jd_health_collect
+# 幸运大转盘
+10 10,23 * * * jd jd_market_lottery
+# 领金贴
+5 0 * * * jd jd_jin_tie
+# 跳跳乐瓜分京豆
+15 0,12,22 * * * jd jd_jump
+#京喜牧场
+15 0,12,22 * * * jd jd_jxmc

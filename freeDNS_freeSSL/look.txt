@@ -3,3 +3,4 @@ https://freedns.afraid.org/
 
 #free SSL
 https://freessl.org/
+https://manage.sslforfree.com/
