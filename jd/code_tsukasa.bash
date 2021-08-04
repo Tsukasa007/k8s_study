@@ -199,10 +199,6 @@ else
     #清空help
     sed -i  '/^##helpStart/,/^\##helpEnd/{/^##helpStart/!{/^\##helpEnd/!d;};}'  $task_before_path
     #写入
-#    gsed -i "${helpStartLine}s/.*/<bean>&/" $task_before_path
-#    gsed '/export/a xxx' $task_before_path
-#    sed '/bbbb/a\xiaowu' file
-#    gsed -i '/##helpStart/a\xi123aowu' $task_before_path
     sed -i $helpStartLine'r '$log_path $task_before_path
     echo '***** done! *****'
 fi
