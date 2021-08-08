@@ -2,18 +2,13 @@
 
 centos7.6
 mkdir -p /root/.ssh/
-touch /root/.ssh/authorized_keys
-vim install -y
 vim /root/.ssh/authorized_keys
 
-
-vim  /root/.ssh/id_rsa.pubys
 
 
 chmod  600 /root/.ssh/authorized_keys
 
 vim /etc/ssh/sshd_config
-
 
 RSAAuthentication yes       #RSA身份验证:yes开启no关闭
 PubkeyAuthentication yes    #公钥身份验证:yes开启no关闭
