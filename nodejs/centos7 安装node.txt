@@ -7,7 +7,7 @@ tar -xvf  node-v10.14.1-linux-x64.tar.gz
 mv node-v10.14.1-linux-x64 node
 添加环境变量
 
-vi /etc/profile
+vim /etc/profile
 在文件最后添加以下配置：
 
 export NODE_HOME=/usr/local/node
@@ -25,3 +25,17 @@ n stable // 把当前系统的 Node 更新成最新的 “稳定版本”
 n lts // 长期支持版
 n latest // 最新版
 n 10.14.2 // 指定安装版本
+
+
+步骤如下：
+进入终端，依次输入一下命令
+（1）创建global安装任务的目录
+mkdir /etc/.npm-global
+（2）配置npm使用新的目录
+npm config set prefix '/etc/.npm-global'
+（3）在/etc/.profile文件中增加配置
+export PATH=/etc/.npm-global/bin:$PATH
+（4）配置文件立即生效
+source /etc/profile
+（5）重新执行命令
+npm install -g xxxx
