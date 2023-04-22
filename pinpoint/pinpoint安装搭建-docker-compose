@@ -44,12 +44,12 @@ docker 镜像构建时要把pinpoint-agent解压后的把放进去，启动时�
 COPY pinpoint-agent /pinpoint-agent
 
 jar 启动时需要添加的参数
-"-javaagent:/pinpoint-agent/pinpoint-bootstrap-1.8.3.jar","-Dpinpoint.agentId=tplmo-channel","-Dpinpoint.applicationName=tplmo-channel",
+"-javaagent:/pinpoint-agent/pinpoint-bootstrap-1.8.3.jar","-Dpinpoint.agentId=tt-channel","-Dpinpoint.applicationName=tt-channel",
 
 说明：
 -javaagent:/pinpoint-agent/pinpoint-bootstrap-1.8.3.jar  (注意路径)
--Dpinpoint.agentId=tplmo-channel（名字随便填）
--Dpinpoint.applicationName=tplmo-channel（名字随便填）
+-Dpinpoint.agentId=tt-channel（名字随便填）
+-Dpinpoint.applicationName=tt-channel（名字随便填）
 
 
 
