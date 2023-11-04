@@ -1,0 +1,17 @@
+docker run -d -m 4096m \
+-p 1935:1935 -p 58080:80 -p 50443:443 -p 8554:554 -p 10000:10000 -p 10000:10000/udp -p 8000:8000/udp -p 30000-30010:30000-30010 -p 30000-30010:30000-30010/udp \
+--name zlmediakit \
+--restart=always \
+zlmediakit/zlmediakit:master
+
+
+docker cp zlmediakit:/opt/media .
+
+
+docker run -d -m 4096m \
+-p 1935:1935 -p 58080:80 -p 50443:443 -p 8554:554 -p 10000:10000 -p 10000:10000/udp -p 8000:8000/udp -p 30000-30010:30000-30010 -p 30000-30010:30000-30010/udp \
+-v /usr/local/src/zlmediakit/media/bin:/opt/media/bin \
+-v /usr/local/src/zlmediakit/media/conf:/opt/media/conf \
+--name zlmediakit \
+--restart=always \
+zlmediakit/zlmediakit:master
