@@ -1,0 +1,17 @@
+helm install emqx emqx/emqx \
+--set replicaCount=3 \
+--set image.tag=5.7.1 \
+--set persistence.enabled=true \
+--set persistence.size=100Mi \
+--set persistence.storageClass=rook-cephfs \
+--set service.type=NodePort \
+--set service.nodePorts.mqtt=31274 \
+--set service.nodePorts.mqttssl=31170 \
+--set service.nodePorts.ws=30099 \
+--set service.nodePorts.wss=32580 \
+--set service.nodePorts.dashboard=31303 \
+--namespace emqx \
+--create-namespace
+
+docker pull  d.net-works.top/emqx/emqx:5.7.1
+docker tag  d.net-works.top/emqx/emqx:5.7.1 emqx/emqx:5.7.1
