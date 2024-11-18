@@ -118,6 +118,8 @@ yum-config-manager \
  --add-repo \
  https://download.docker.com/linux/centos/docker-ce.repo
 
+sudo yum-config-manager --add-repo http://mirrors.aliyun.com/docker-ce/linux/centos/docker-ce.repo
+
 yum makecache fast
 yum -y install docker-ce-18.09.7
 ```
