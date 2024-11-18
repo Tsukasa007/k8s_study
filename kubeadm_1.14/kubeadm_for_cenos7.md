@@ -1,3 +1,9 @@
+#k3s快速安装
+```
+curl -sfL https://rancher-mirror.rancher.cn/k3s/k3s-install.sh | INSTALL_K3S_MIRROR=cn INSTALL_K3S_SKIP_SELINUX_RPM=true sh -s - --docker \
+--system-default-registry "docker-hub.tsukasa.pro"
+```
+
 # 所有主机：基本系统配置
 
 ## 关闭Selinux/firewalld
