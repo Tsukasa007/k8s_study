@@ -56,6 +56,19 @@ rpm -Uvh https://www.elrepo.org/elrepo-release-7.0-2.el7.elrepo.noarch.rpm ;
 yum --enablerepo=elrepo-kernel install kernel-ml-devel kernel-ml -y
 ```
 
+## 升级内核（停服后升级）
+```bash
+wget https://dl.lamp.sh/kernel/el7/kernel-ml-5.15.63-1.el7.x86_64.rpm 
+wget https://dl.lamp.sh/kernel/el7/kernel-ml-devel-5.15.63-1.el7.x86_64.rpm 
+wget https://dl.lamp.sh/kernel/el7/kernel-ml-headers-5.15.63-1.el7.x86_64.rpm 
+wget https://dl.lamp.sh/kernel/el7/kernel-ml-tools-5.15.63-1.el7.x86_64.rpm 
+wget https://dl.lamp.sh/kernel/el7/kernel-ml-tools-libs-5.15.63-1.el7.x86_64.rpm 
+wget https://dl.lamp.sh/kernel/el7/kernel-ml-tools-libs-devel-5.15.63-1.el7.x86_64.rpm
+
+yum localinstall kernel-ml-* -y --skip-broken
+```
+
+
 ## 检查默认内核版本是否大于4.14，否则请调整默认启动参数(grub2-set-default 0)
 ```bash
 grub2-editenv list
