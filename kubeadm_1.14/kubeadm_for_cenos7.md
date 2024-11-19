@@ -53,7 +53,7 @@ sysctl -p
 ## 同步时间
 ```bash
 yum install -y ntpdate
-ntpdate -u ntp.api.bz
+ntpdate -u ntp.aliyun.com
 ```
 
 ## 升级内核
