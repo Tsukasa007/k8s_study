@@ -22,3 +22,11 @@ helm install emqx emqx/emqx \
 
 docker pull  d.net-works.top/emqx/emqx:5.7.1
 docker tag  d.net-works.top/emqx/emqx:5.7.1 emqx/emqx:5.7.1
+
+
+
+
+#卸载emqx集群
+helm uninstall emqx -n emqx
+#删除pv/pvc
+kubectl delete -n emqx pvc emqx-data-emqx-0
