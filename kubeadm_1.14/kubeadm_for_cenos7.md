@@ -8,6 +8,10 @@ curl -sfL https://rancher-mirror.rancher.cn/k3s/k3s-install.sh | INSTALL_K3S_MIR
 ```
 curl -sfL https://get-kk.kubesphere.io | VERSION=v3.0.13 sh -
 
+./kk init os
+
+./kk create cluster --with-kubernetes v1.23.17
+
 kube需要默认存储
 defStorageClass.yaml
 
