@@ -4,6 +4,32 @@ curl -sfL https://rancher-mirror.rancher.cn/k3s/k3s-install.sh | INSTALL_K3S_MIR
 --system-default-registry "docker-hub.tsukasa.pro"
 ```
 
+# kubesphere单机
+```
+curl -sfL https://get-kk.kubesphere.io | VERSION=v3.0.13 sh -
+
+kube需要默认存储
+defStorageClass.yaml
+
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  annotations:
+    storageclass.kubernetes.io/is-default-class: "true"
+  name: default-storage
+provisioner: kubernetes.io/no-provisioner
+volumeBindingMode: WaitForFirstConsumer
+
+kubectl apply -f defStorageClass.yaml
+
+wget https://github.com/kubesphere/ks-installer/releases/download/v3.4.1/kubesphere-installer.yaml
+wget https://github.com/kubesphere/ks-installer/releases/download/v3.4.1/cluster-configuration.yaml
+
+kubectl logs -n kubesphere-system $(kubectl get pod -n kubesphere-system -l 'app in (ks-install, ks-installer)' -o jsonpath='{.items[0].metadata.name}') -f
+
+
+```
+
 # 所有主机：基本系统配置
 
 ## 关闭Selinux/firewalld
