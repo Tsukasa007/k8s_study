@@ -6,6 +6,7 @@ curl -sfL https://rancher-mirror.rancher.cn/k3s/k3s-install.sh | INSTALL_K3S_MIR
 curl -sfL https://rancher-mirror.rancher.cn/k3s/k3s-install.sh | INSTALL_K3S_MIRROR=cn INSTALL_K3S_SKIP_SELINUX_RPM=true sh -s - --docker \
 --system-default-registry "registry.cn-hangzhou.aliyuncs.com"
 
+yum -y install docker-ce-20.10.24-3.el9
 curl -sfL https://rancher-mirror.rancher.cn/k3s/k3s-install.sh | INSTALL_K3S_MIRROR=cn INSTALL_K3S_SKIP_SELINUX_RPM=true INSTALL_K3S_VERSION="v1.23.17+k3s1" sh -s - --docker \
 --system-default-registry "registry.cn-hangzhou.aliyuncs.com"
 
@@ -16,6 +17,11 @@ v1.23.17+k3s1
 
 # kubesphere单机
 ```
+注意先安装好docker 需要
+[root@xxx kubesphere]# docker info | grep "Cgroup Driver"
+ Cgroup Driver: cgroupfs
+
+
 curl -sfL https://get-kk.kubesphere.io | VERSION=v3.0.13 sh -
 
 ./kk init os
