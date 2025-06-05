@@ -2,6 +2,15 @@
 ```
 curl -sfL https://rancher-mirror.rancher.cn/k3s/k3s-install.sh | INSTALL_K3S_MIRROR=cn INSTALL_K3S_SKIP_SELINUX_RPM=true sh -s - --docker \
 --system-default-registry "docker-hub.tsukasa.pro"
+
+curl -sfL https://rancher-mirror.rancher.cn/k3s/k3s-install.sh | INSTALL_K3S_MIRROR=cn INSTALL_K3S_SKIP_SELINUX_RPM=true sh -s - --docker \
+--system-default-registry "registry.cn-hangzhou.aliyuncs.com"
+
+curl -sfL https://rancher-mirror.rancher.cn/k3s/k3s-install.sh | INSTALL_K3S_MIRROR=cn INSTALL_K3S_SKIP_SELINUX_RPM=true sh -s - --docker --version v1.23.17 \
+--system-default-registry "registry.cn-hangzhou.aliyuncs.com"
+
+curl -sfL https://get.k3s.io | sh -s - --version v1.23.17
+v1.23.17+k3s1
 ```
 
 # kubesphere单机
