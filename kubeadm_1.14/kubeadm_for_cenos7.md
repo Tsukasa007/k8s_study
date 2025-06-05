@@ -6,8 +6,9 @@ curl -sfL https://rancher-mirror.rancher.cn/k3s/k3s-install.sh | INSTALL_K3S_MIR
 curl -sfL https://rancher-mirror.rancher.cn/k3s/k3s-install.sh | INSTALL_K3S_MIRROR=cn INSTALL_K3S_SKIP_SELINUX_RPM=true sh -s - --docker \
 --system-default-registry "registry.cn-hangzhou.aliyuncs.com"
 
-curl -sfL https://rancher-mirror.rancher.cn/k3s/k3s-install.sh | INSTALL_K3S_MIRROR=cn INSTALL_K3S_SKIP_SELINUX_RPM=true sh -s - --docker --version v1.23.17 \
+curl -sfL https://rancher-mirror.rancher.cn/k3s/k3s-install.sh | INSTALL_K3S_MIRROR=cn INSTALL_K3S_SKIP_SELINUX_RPM=true INSTALL_K3S_VERSION="v1.23.17+k3s1" sh -s - --docker \
 --system-default-registry "registry.cn-hangzhou.aliyuncs.com"
+
 
 curl -sfL https://get.k3s.io | sh -s - --version v1.23.17
 v1.23.17+k3s1
